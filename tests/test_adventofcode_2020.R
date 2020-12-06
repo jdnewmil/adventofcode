@@ -16,6 +16,8 @@ test_data_day2 <- c( "1-3 a: abcde"
                    , "2-9 c: ccccccccc"
                    )
 
+# Day 1 ----
+
 test_that( "find_vec_pairsum", {
   result <- find_vec_pairsum( test_data_day1, 2020 )
   expect_equal( result, c( 1, 4 ) )
@@ -29,6 +31,8 @@ test_that( "find_vec_nsum", {
   result <- find_vec_pairsum( test_data_day1, 2021 )
   expect_equal( result, integer( 0 ) )
 })
+
+# Day 2 ----
 
 test_that( "parse_pwd2a", {
   result <- parse_pwd2a( test_data_day2 )
@@ -52,6 +56,8 @@ test_that( "chk_pwd2b", {
   expect_false( chk_pwd2b( ixlo = 1, ixhi = 3, ltr = "b", pwd = "cdefg" ) )
   expect_false( chk_pwd2b( ixlo = 1, ixhi = 3, ltr = "c", pwd = "ccccccccc" ) )
 })
+
+# Day 3 ----
 
 test_that( "parse_forest", {
   fd <- c( "..##......."
@@ -108,6 +114,8 @@ test_that( "count_t", {
   result <- count_toboggan_trees( tree_map, row_delta = 1L, col_delta = 3L )
   expect_equal( result, 7L )
 })
+
+# Day 4 ----
 
 test_that( "parse_ppdata", {
   lns <- c( "ecl:gry pid:860033327 eyr:2020 hcl:#fffffd"
@@ -195,6 +203,8 @@ test_that( "validate_ppdata", {
   expect_equal( result3, c( TRUE, TRUE, TRUE, TRUE ) )
 })
 
+# Day 5 ----
+
 test_that( "decode_bp_to_int", {
   bd_dta <- read.table( text =
 "code      row  col  seat_id
@@ -208,3 +218,53 @@ BBFFBBFRLL 102    4      820
   expect_equal( seat_id_to_col( result ), bd_dta$col )
 })
 
+# Day 6 ----
+
+test_that( "", {
+  sample_dta <- readLines( textConnection(
+"abc
+
+a
+b
+c
+
+ab
+ac
+
+a
+a
+a
+a
+
+b
+"
+  ))
+  result <- parse_multiline_recs( sample_dta )
+  expect_true( is.list( result ) )
+  expect_equal( length( result ), 5 )
+  expect_equal( result[[ 1 ]], "abc" )
+  expect_equal( result[[ 3 ]], c( "ab", "ac" ) )
+  expect_equal( result[[ 5 ]], "b" )
+})
+
+test_that( "normalize_rec_answers", {
+  result <- normalize_rec_answers( c( "ab", "ac" ) )
+  expect_equal( result, c( "a", "b", "c" ) )
+  result <- normalize_rec_answers( "abc" )
+  expect_equal( result, c( "a", "b", "c" ) )
+  result <- normalize_rec_answers( "abc", FUN = intersect )
+  expect_equal( result, c( "a", "b", "c" ) )
+  result <- normalize_rec_answers( c( "a", "b", "c" ), FUN = intersect )
+  expect_equal( result, character( 0 ) )
+})
+
+test_that( "count_rec_answers", {
+  recList <- list( `0` = "abc", `1` = c("a", "b", "c")
+                 , `2` = c("ab", "ac"), `3` = c("a", "a", "a", "a")
+                 , `4` = "b"
+                 )
+  result <- count_rec_answers( recList )
+  expect_equal( result, c( 3, 3, 3, 1, 1 ) )
+  result2 <- count_rec_answers( recList, FUN = intersect )
+  expect_equal( result2, c( 3, 0, 1, 1, 1 ) )
+})

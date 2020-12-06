@@ -1,5 +1,7 @@
 # adventofcode_2020.R
 
+# Day 1 ----
+
 #' Return indexes of two values that sum to pair_sum
 #' @param v Integer vector
 #' @param pair_sum Target value to find
@@ -30,6 +32,8 @@ find_vec_nsum <- function( v, nsum, n ) {
     c( ix, i )
   }
 }
+
+# Day 2 ----
 
 #' Parse lines of password database
 #' 
@@ -85,6 +89,8 @@ chk_pwd2b <- function( ixlo, ixhi, ltr, pwd ) {
   1 == sum( pwd_ltrs[ ixlo ] == ltr, pwd_ltrs[ ixhi ] == ltr )
 }
 
+# Day 3 ----
+
 #' @param lns Character, lines of text consisting of '.' for empty space and '#'
 #'   for trees. Each line is a "row" of tree location information.
 #' @return Logical matrix, TRUE if a tree is in that row/column
@@ -129,6 +135,8 @@ count_toboggan_trees <- function( tree_map, row_delta, col_delta ) {
                              )
   sum( tree_map[ traj ] )
 }
+
+# Day 4 ----
 
 #' Parse a (on-line) passport record
 #' 
@@ -272,6 +280,8 @@ validate_ppdata <- function( ppdata, enhanced = "4a" ) {
   }
 }
 
+# Day 5 ----
+
 decode_bp_to_int <- function( s ) {
   (   s
   %>% gsub( "[FL]", "0", . )
@@ -288,6 +298,48 @@ seat_id_to_col <- function( si ) {
   si %% 8L
 }
 
-# f_day1_part1a <- function() {
-#   
-# }
+# Day 6 ----
+
+#' multiline space-delimited record parsing
+#' 
+#' @param lns Character, lines from file of blank-line-delimited records,
+#'   each record is space delimited field information
+#' @return List of character vectors (fields)
+parse_multiline_recs <- function( lns ) {
+  # mark end of record lines
+  eor <- "" == lns
+  (   lns
+  %>% split( cumsum( eor ) ) # make a list of records (vectors of fields)
+  %>% map( paste, collapse = " " ) # list of single-record strings
+  %>% map( function( r ) # list of character vectors of fields
+              scan( text = r
+                  , what = character()
+                  , quiet = TRUE
+                  )
+         )
+  %>% compact()
+  )
+}
+
+#' @param rec Character vector, each element consists of answers for one person
+#' @param FUN Function, one of `union` (part 6a) or `intersect` (part 6b)
+#' @return Character vector, individual answers meeting criteria
+normalize_rec_answers <- function( rec, FUN = union ) {
+  (   rec
+  %>% strsplit( split = "" )
+  %>% reduce( FUN )
+  )
+}
+
+#' @param List of character vectors, each of which contains answers from various
+#'   party members
+#' @param FUN Function, one of `union` (part 6a) or `intersect` (part 6b)
+#' @return List of character vectors, one for each record, identifying answers
+#'   meeting criteria for that party
+count_rec_answers <- function( recList, FUN = union ) {
+  (   recList
+  %>% map( normalize_rec_answers, FUN = FUN )
+  %>% map_int( length )
+  %>% as.vector()
+  )
+}

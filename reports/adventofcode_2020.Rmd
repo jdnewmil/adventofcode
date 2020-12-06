@@ -103,3 +103,17 @@ my_si
 #seat_id_to_row( my)
 ```
 
+## [Day 6](https://adventofcode.com/2020/day/6)
+
+### Part 1
+
+```{r}
+s <- readLines( file.path( dtadir, "aoc2020_data_6a.txt" ), warn = FALSE )
+answer_list <- parse_multiline_recs( s )
+sum( count_rec_answers( answer_list ) )
+```
+
+```{r}
+sum( count_rec_answers( answer_list, FUN = intersect ) )
+```
+
