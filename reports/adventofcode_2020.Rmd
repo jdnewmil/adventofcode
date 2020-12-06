@@ -1,0 +1,105 @@
+---
+title: "Advent of Code 2020"
+name: "Jeff Newmiller"
+output: html_notebook
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(ggplot2)
+})
+rdir <- "R" # set Rmarkdown to evaluate in project directory
+dtadir <- "data"
+source( file.path( rdir, "adventofcode_2020.R" ) )
+```
+
+
+# Advent of Code 2020
+
+## [Day 1](https://adventofcode.com/2020/day/1)
+
+### Part 1
+
+```{r}
+dta_1a <- read.csv( file.path( dtadir, "aoc2020_data_1a.csv" ), header=FALSE )[[1]]
+prod( dta_1a[ find_vec_pairsum( dta_1a, 2020 ) ] )
+```
+
+### Part 2
+
+```{r}
+prod( dta_1a[ find_vec_nsum( dta_1a, 2020, 3 ) ] )
+```
+
+## [Day 2](https://adventofcode.com/2020/day/2)
+
+### Part 1
+
+```{r}
+library(purrr)
+dta_2a <- parse_pwd2a( readLines( file.path( dtadir, "aoc2020_data_2a.csv" ) ) )
+sum( pmap_lgl( dta_2a, chk_pwd2a ) )
+```
+
+### Part 2
+
+```{r}
+sum( pmap_lgl( dta_2a, chk_pwd2b ) )
+```
+
+## [Day 3](https://adventofcode.com/2020/day/3)
+
+### Part 1
+
+```{r}
+lns <- readLines( file.path( dtadir, "aoc2020_data_3a.txt" ) )
+tree_map <- parse_forest( lns = lns )
+count_toboggan_trees( tree_map = tree_map, row_delta = 1L, col_delta = 3L )
+```
+
+```{r}
+dta_3b <- read.table( text = 
+"row_delta  col_delta
+         1          1
+         1          3
+         1          5
+         1          7
+         2          1
+", header = TRUE )
+(   dta_3b
+%>% pmap_int( count_toboggan_trees, tree_map = tree_map )
+%>% prod
+)
+```
+
+## [Day 4](https://adventofcode.com/2020/day/4)
+
+### Part 1
+
+```{r}
+lns <- readLines( file.path( dtadir, "aoc2020_data_4a.txt" ), warn = FALSE )
+ppdb <- parse_ppdata( lns )
+sum( validate_ppdata( ppdb ) )
+```
+
+```{r}
+sum( validate_ppdata( ppdb, enhanced = "4b" ) )
+```
+
+## [Day 5](https://adventofcode.com/2020/day/5)
+
+### Part 1
+
+```{r}
+s <- readLines( file.path( dtadir, "aoc2020_data_5a.txt" ), warn = FALSE )
+si <- decode_bp_to_int( s )
+max( si )
+```
+
+```{r}
+sio <- si[ order( si ) ]
+my_si <- which( 1 < diff( sio ) ) + sio[ 1 ]
+my_si
+#seat_id_to_row( my)
+```
+
