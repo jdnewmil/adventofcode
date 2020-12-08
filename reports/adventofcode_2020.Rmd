@@ -117,3 +117,22 @@ sum( count_rec_answers( answer_list ) )
 sum( count_rec_answers( answer_list, FUN = intersect ) )
 ```
 
+## [Day 7](https://adventofcode.com/2020/day/6)
+
+### Part 1
+
+```{r}
+s <- readLines( file.path( dtadir, "aoc2020_data_7a.txt" ), warn = FALSE )
+bag_rules_df <- parse_bag_rules( s )
+bag_rules_mat <- make_bag_rules_matrix( bag_rules_df )
+count_colors_containing( bag_rules_mat, "shiny gold" )
+```
+
+### Part 2
+
+```{r}
+count_required_bags( bag_rules_mat, "shiny gold" )
+```
+
+Also, a speed comparison: [https://gist.github.com/jdnewmil/621450c9dd7eaff8a08d84831cfd3091]
+

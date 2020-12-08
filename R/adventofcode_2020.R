@@ -343,3 +343,94 @@ count_rec_answers <- function( recList, FUN = union ) {
   %>% as.vector()
   )
 }
+
+# Day 7 ----
+
+#' Parse a (on-line) passport record
+#' 
+#' @param s Character vector, one record per element
+#' @return Data frame (one row) with column names as defoined in the record
+parse_keyval <- function( s, pat, keyname, valname ) {
+  # extract part before first separator
+  nms <- sub( pat, "\\1", s )
+  # extract second element of each vector (values) as a list
+  vals <- sub( pat, "\\2", s )
+  # create a data frame out of the named list
+  result <- data.frame( key = nms
+                      , vals = vals
+                      , stringsAsFactors = FALSE
+                      )
+  names( result ) <- c( keyname, valname )
+  result
+}
+
+parse_bag_rules <- function( s ) {
+  ruleno <- seq_along( s )
+  some_bags_ix <- grepl( "\\D+ bags contain .*$", s )
+  DF <- (   s[ some_bags_ix ]
+        %>% parse_keyval( pat = "^(.*?) bags contain (.*)$"
+                        , "containing_bag_color"
+                        , "all_vals" )
+        %>% rowwise()
+        %>% mutate( data = (   all_vals
+                           %>% strsplit( ", " )
+                           %>% map( function( x )
+                                sub( " bags?.?$", "", x ) )
+                           %>% map( parse_keyval
+                                  , pat = "^(.*?) (.*)$"
+                                  , keyname = "cbnum"
+                                  , valname = "cbcolor"
+                                  )
+                           )
+                  )
+        %>% ungroup()
+        %>% select( -all_vals )
+        %>% unnest( cols = "data" )
+        )
+  DF
+}
+
+make_bag_rules_matrix <- function( bag_rules_df ) {
+  bag_rules_df <- subset( bag_rules_df, "no" != cbnum )
+  bag_rules_df$cbnum <- as.integer( bag_rules_df$cbnum )
+  colrs <- union( bag_rules_df$containing_bag_color
+                , bag_rules_df$cbcolor
+                )
+  result <- matrix( 0
+                  , ncol = length( colrs )
+                  , nrow = length( colrs )
+                  )
+  rownames( result ) <- colnames( result ) <- colrs
+  result[ matrix( with( bag_rules_df
+                      , match( c( containing_bag_color
+                                , cbcolor
+                                )
+                             , colrs
+                             )
+                      )
+                , ncol = 2L
+                )
+        ] <- bag_rules_df$cbnum
+  result
+}
+
+count_colors_containing <- function( bag_rules_mat, contained_color ) {
+  brl <- 0 != bag_rules_mat
+  v <- brl[ , match( contained_color, colnames( brl ) ) ]
+  svlast <- 0
+  while ( svlast < ( sv <- sum( v ) ) ) {
+    svlast <- sv
+    v <- as.logical( brl %*% v ) | v
+  }
+  sum( v )
+}
+
+count_required_bags <- function( bag_rules_mat, containing_color ) {
+  v <- bag_rules_mat[ containing_color, ]
+  accum <- 0
+  while ( 0 < ( sv <- sum( v ) ) ) {
+    accum <- accum + sv 
+    v <- v %*% bag_rules_mat
+  }
+  accum
+}
