@@ -434,3 +434,61 @@ count_required_bags <- function( bag_rules_mat, containing_color ) {
   }
   accum
 }
+
+# Day 8 ----
+
+cpu8a <- function() {
+  ptr <- 1L
+  acc <- 0L
+  
+  list( ops = list( nop = function( arg1 ) ptr <<- ptr + 1L
+                  , jmp = function( arg1 ) ptr <<- ptr + arg1
+                  , acc = function( arg1 ) {
+                      acc <<- acc + arg1
+                      ptr <<- ptr + 1L
+                    }
+                  )
+      , ptr = function() ptr
+      , acc = function() acc
+      )
+}
+
+
+parse_pgm_8a <- function( src ) {
+  (   data.frame( src = src
+                , stringsAsFactors = FALSE
+                )
+  %>% separate( src
+              , into = c( "op", "arg1" )
+              , sep = " " )
+  %>% mutate( arg1 = as.integer( arg1 ) )
+  )
+}
+
+link_code_8a <- function( code ) {
+  cpu <- cpu8a()
+  lcode <- (   code
+           %>% rowwise()
+           %>% mutate( fun = list( cpu$ops[[ op ]] )
+                     , marks = FALSE
+                     )
+           %>% ungroup()
+           )
+  list( exec1 = function() {
+          p <- cpu$ptr() # instruction ptr
+          lcode$marks[ cpu$ptr() ] <<- TRUE
+          lcode$fun[[ p ]]( lcode$arg1[ p ] ) # exec opcode
+          lcode$marks[ cpu$ptr() ]
+        }
+      , acc = function() cpu$acc()
+      )
+}
+
+run_code_8a <- function( code ) {
+  lcode <- link_code_8a( code )
+  last_acc <- lcode$acc()
+  while ( !lcode$exec1() ) {
+    last_acc <- lcode$acc()
+  }
+  last_acc
+}

@@ -346,3 +346,23 @@ dark violet bags contain no other bags.
   result <- count_required_bags( brmat, "shiny gold" )
   expect_equal( result, 126L )
 })
+
+# Day 8 ----
+
+test_that( "", {
+  sample_pgm <- readLines( textConnection(
+"nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6"
+))
+  code <- parse_pgm_8a( sample_pgm )
+  expect_s3_class( code, "data.frame" )
+  expect_named( code, c( "op", "arg1" ) )
+  result <- run_code_8a( code )
+})
