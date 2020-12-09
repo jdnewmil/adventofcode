@@ -117,7 +117,7 @@ sum( count_rec_answers( answer_list ) )
 sum( count_rec_answers( answer_list, FUN = intersect ) )
 ```
 
-## [Day 7](https://adventofcode.com/2020/day/6)
+## [Day 7](https://adventofcode.com/2020/day/7)
 
 ### Part 1
 
@@ -135,4 +135,19 @@ count_required_bags( bag_rules_mat, "shiny gold" )
 ```
 
 Also, a speed comparison: [https://gist.github.com/jdnewmil/621450c9dd7eaff8a08d84831cfd3091]
+
+## [Day 8](https://adventofcode.com/2020/day/8)
+
+### Part 1
+
+```{r}
+s <- readLines( file.path( dtadir, "aoc2020_data_8a.txt" ), warn = FALSE )
+code <- parse_pgm_8a( s )
+run_code_8a( code )
+```
+
+```{r}
+result <- alter_nopjmps( code )
+result$last_acc[ which( result$finished ) ]
+```
 
