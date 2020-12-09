@@ -437,6 +437,7 @@ count_required_bags <- function( bag_rules_mat, containing_color ) {
 
 # Day 8 ----
 
+#' define a virtual cpu
 cpu8a <- function() {
   ptr <- 1L
   acc <- 0L
@@ -465,7 +466,8 @@ parse_pgm_8a <- function( src ) {
   )
 }
 
-link_code_8a <- function( code ) {
+#' compile the code (create an "executable" object)
+compile_code_8a <- function( code ) {
   cpu <- cpu8a()
   lcode <- (   code
            %>% rowwise()
@@ -484,11 +486,77 @@ link_code_8a <- function( code ) {
       )
 }
 
+#' run the specified code
 run_code_8a <- function( code ) {
-  lcode <- link_code_8a( code )
+  lcode <- compile_code_8a( code )
   last_acc <- lcode$acc()
   while ( !lcode$exec1() ) {
     last_acc <- lcode$acc()
   }
   last_acc
 }
+
+## Day 8b ----
+
+#' convert the code to compiled form (assign functions)
+#' 
+#' This function instruments the code to track behavior
+compile_code_8b <- function( code ) {
+  last_run <- 0
+  cpu <- cpu8a()
+  lcode <- (   code
+           %>% rowwise()
+           %>% mutate( fun = list( cpu$ops[[ op ]] )
+                     , marks = NA_integer_
+                     )
+           %>% ungroup()
+           )
+  list( exec1 = function() {
+          p <- cpu$ptr() # instruction ptr
+          last_run <<- last_run + 1L
+          lcode$marks[ cpu$ptr() ] <<- last_run
+          lcode$fun[[ p ]]( lcode$arg1[ p ] ) # exec opcode
+          lcode$marks[ cpu$ptr() ]
+        }
+      , acc = function() cpu$acc()
+      , ptr = function() cpu$ptr()
+      , marks = function() lcode$marks
+      )
+}
+
+#' run the specified code with instrumented output
+run_code_8b <- function( code ) {
+  lcode <- compile_code_8b( code )
+  last_acc <- lcode$acc()
+  finished <- FALSE
+  while (  is.na( lcode$exec1() )
+        && !( finished <- nrow( code ) < lcode$ptr() )
+        ) {
+    last_acc <- lcode$acc()
+  }
+  list( last_acc = last_acc
+      , finished = finished
+      , marks = lcode$marks()
+      )
+}
+
+#' run repeatedly to find which single instruction change stops the loop
+alter_nopjmps <- function( code ) {
+  dryrun <- run_code_8b( code )
+  code$marks <- dryrun$marks
+  ptrs_to_change <- which( code$op %in% c( "jmp", "nop" )
+                         & !is.na( code$marks )
+                         )
+  code$finished <- NA
+  code$last_acc <- NA
+  for ( p in ptrs_to_change ) {
+    test_code <- code[ , c( "op", "arg1" ) ]
+    if ( "jmp" == test_code$op[ p ] ) test_code$op[ p ] <- "nop"
+    else test_code$op[ p ] <- "jmp"
+    ans <- run_code_8b( test_code )
+    code$finished[ p ] <- ans$finished
+    code$last_acc[ p ] <- ans$last_acc
+  }
+  code
+}
+

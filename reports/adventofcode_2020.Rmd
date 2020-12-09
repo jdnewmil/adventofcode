@@ -146,3 +146,8 @@ code <- parse_pgm_8a( s )
 run_code_8a( code )
 ```
 
+```{r}
+result <- alter_nopjmps( code )
+result$last_acc[ which( result$finished ) ]
+```
+

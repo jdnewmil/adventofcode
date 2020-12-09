@@ -349,7 +349,7 @@ dark violet bags contain no other bags.
 
 # Day 8 ----
 
-test_that( "", {
+test_that( "run_code_8a", {
   sample_pgm <- readLines( textConnection(
 "nop +0
 acc +1
@@ -366,3 +366,49 @@ acc +6"
   expect_named( code, c( "op", "arg1" ) )
   result <- run_code_8a( code )
 })
+
+test_that( "run_code_8b", {
+  sample_pgm <- readLines( textConnection(
+"nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6"
+  ))
+  code <- parse_pgm_8a( sample_pgm )
+  expect_s3_class( code, "data.frame" )
+  expect_named( code, c( "op", "arg1" ) )
+  result <- run_code_8b( code )
+  expect_named( result, c( "last_acc", "finished", "marks" ) )
+  expect_false( result$finished )
+  expect_equal( result$marks
+              , c( 1, 2, 3, 6, 7, NA, 4, 5, NA )
+              )
+})
+
+test_that( "run_code_8b", {
+  sample_pgm <- readLines( textConnection(
+    "nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6"
+  ))
+  code <- parse_pgm_8a( sample_pgm )
+  expect_s3_class( code, "data.frame" )
+  expect_named( code, c( "op", "arg1" ) )
+  result <- alter_nopjmps( code )
+  expect_named( result, c( "last_acc", "finished", "marks" ) )
+  expect_equal( result$finished
+              , c( FALSE, NA, FALSE, NA, FALSE, NA, NA, TRUE, NA )
+  )
+})
+
