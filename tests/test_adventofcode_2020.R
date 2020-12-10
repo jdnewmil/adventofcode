@@ -412,3 +412,56 @@ acc +6"
   )
 })
 
+# Day 9 ----
+
+test_that( "check_sum_validity", {
+  sample_dta <- scan( text =
+"35
+20
+15
+25
+47
+40
+62
+55
+65
+95
+102
+117
+150
+182
+127
+219
+299
+277
+309
+576", quiet = TRUE )
+  result <- check_sum_validity( sample_dta, 5L )
+  expect_equal( result, 15L )
+})
+
+test_that( "", {
+  sample_dta <- scan( text =
+"35
+20
+15
+25
+47
+40
+62
+55
+65
+95
+102
+117
+150
+182
+127
+219
+299
+277
+309
+576", quiet = TRUE )
+  result <- find_encryption_weakness( sample_dta, 15L )
+  expect_equal( result, c( 3, 6 ) )
+})

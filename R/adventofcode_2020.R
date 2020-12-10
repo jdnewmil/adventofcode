@@ -560,3 +560,41 @@ alter_nopjmps <- function( code ) {
   code
 }
 
+# Day 9 ----
+
+check_sum_validity <- function( v, n ) {
+  ix <- n+1L
+  while (  ix <= length( v )
+        && 0 < length( find_vec_pairsum( v[ seq( ix-n-1L, ix-1L ) ]
+                                       , v[ ix ]
+                                       ) ) ) {
+    ix <- ix + 1L
+  }
+  if ( length( v ) < ix ) NA
+  else ix
+}
+
+#' find a contiguous sequence of numbers in v that add to the ix-th element of v
+find_encryption_weakness <- function( v, ix ) {
+  goal <- v[ ix ]
+  ix1 <- ix0 <- 1L
+  accum <- v[ ix0 ]
+  while (  ix0 <= length( v )
+        && accum != goal
+        ) {
+    if ( accum < goal ) {
+      ix1 <- ix1 + 1L
+      if ( length( v ) < ix1 ) return( NULL )
+      accum <- accum + v[ ix1 ]
+    } else {
+      if ( ix0 == ix1 ) {
+        ix1 <- ix0 <- ix0 + 1L
+        accum <- v[ ix0 ]
+      } else {
+        accum <- accum - v[ ix0 ]
+        ix0 <- ix0 + 1L
+      }
+    }
+  }
+  c( ix0, ix1 )
+}
