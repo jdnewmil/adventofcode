@@ -146,8 +146,26 @@ code <- parse_pgm_8a( s )
 run_code_8a( code )
 ```
 
+### Part 2
+
 ```{r}
 result <- alter_nopjmps( code )
 result$last_acc[ which( result$finished ) ]
+```
+
+## [Day 9](https://adventofcode.com/2020/day/9)
+
+### Part 1
+
+```{r}
+v <- scan( file.path( dtadir, "aoc2020_data_9a.txt" ), quiet = TRUE )
+v[ weak_sum <- check_sum_validity( v, 25L ) ]
+```
+
+### Part 2
+
+```{r}
+seq_ix <- find_encryption_weakness( v, weak_sum )
+sum( range( v[ seq( seq_ix[ 1 ], seq_ix[ 2 ] ) ] ) ) 
 ```
 
