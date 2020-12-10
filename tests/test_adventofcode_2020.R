@@ -406,7 +406,7 @@ acc +6"
   expect_s3_class( code, "data.frame" )
   expect_named( code, c( "op", "arg1" ) )
   result <- alter_nopjmps( code )
-  expect_named( result, c( "last_acc", "finished", "marks" ) )
+  expect_named( result, c( "op", "arg1", "marks", "finished", "last_acc" ) )
   expect_equal( result$finished
               , c( FALSE, NA, FALSE, NA, FALSE, NA, NA, TRUE, NA )
   )
@@ -464,4 +464,113 @@ test_that( "", {
 576", quiet = TRUE )
   result <- find_encryption_weakness( sample_dta, 15L )
   expect_equal( result, c( 3, 6 ) )
+})
+
+# Day 10 ----
+
+test_that( "get_joltdiff_table", {
+  sample_dta <- scan( textConnection(
+"16
+10
+15
+5
+1
+11
+7
+19
+6
+12
+4" ), quiet = TRUE )
+  ans <- get_joltdiff_table( sample_dta )
+  result <- as.vector( ans[ "1" ] * ans[ "3" ] )
+  expect_equal( result, 35L )
+  
+  sample_dta2 <- scan( textConnection(
+"28
+33
+18
+42
+31
+14
+46
+20
+48
+47
+24
+23
+49
+45
+19
+38
+39
+11
+1
+32
+25
+35
+8
+17
+7
+9
+4
+2
+34
+10
+3"), quiet = TRUE )
+  ans <- get_joltdiff_table( sample_dta2 )
+  result2 <- as.vector( ans[ "1" ] * ans[ "3" ] )
+  expect_equal( result2, 220L )
+})
+
+
+test_that( "count_joltdiff_combos", {
+  sample_dta <- scan( textConnection(
+    "16
+10
+15
+5
+1
+11
+7
+19
+6
+12
+4" ), quiet = TRUE )
+  result <- count_joltdiff_combos_v( sample_dta )
+  expect_equal( prod( result ), 8L )
+  
+  sample_dta2 <- scan( textConnection(
+    "28
+33
+18
+42
+31
+14
+46
+20
+48
+47
+24
+23
+49
+45
+19
+38
+39
+11
+1
+32
+25
+35
+8
+17
+7
+9
+4
+2
+34
+10
+3"), quiet = TRUE )
+  result <- count_joltdiff_combos_v( sample_dta2 )
+  expect_equal( prod( result ), 19208L )
 })

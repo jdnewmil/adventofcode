@@ -7,6 +7,7 @@ output: html_notebook
 ```{r}
 suppressPackageStartupMessages({
   library(ggplot2)
+  library(openssl)
 })
 rdir <- "R" # set Rmarkdown to evaluate in project directory
 dtadir <- "data"
@@ -167,5 +168,42 @@ v[ weak_sum <- check_sum_validity( v, 25L ) ]
 ```{r}
 seq_ix <- find_encryption_weakness( v, weak_sum )
 sum( range( v[ seq( seq_ix[ 1 ], seq_ix[ 2 ] ) ] ) ) 
+```
+
+## [Day 10](https://adventofcode.com/2020/day/10)
+
+### Part 1
+
+```{r}
+dta_10a <- scan( file.path( dtadir, "aoc2020_data_10a.txt"), quiet = TRUE )
+tbl_10a <- get_joltdiff_table( dta_10a )
+tbl_10a
+as.vector( tbl_10a[ "1" ] * tbl_10a[ "3" ] )
+```
+
+### Part 2
+
+1  1
+2  1
+3  2
+4  4
+5  7
+6  13
+7  24
+
+```{r}
+countbin2 <- function( n ) {
+  s <- sapply( seq.int( 2^n ) - 1L, dec2bin )
+  l <- n-2L
+  nc <- nchar( s )
+  ss <- substr( s, nc - l - 1L, nc )
+  length( ss[ !grepl( "111", ss ) ] )
+}
+```
+
+```{r}
+Reduce( function( x, y ) x * bignum( y )
+      , count_joltdiff_combos_v( dta_10a )
+      )
 ```
 

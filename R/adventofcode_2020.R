@@ -598,3 +598,28 @@ find_encryption_weakness <- function( v, ix ) {
   }
   c( ix0, ix1 )
 }
+
+# Day 10 ----
+
+get_joltdiff_table <- function( v ) {
+  table( diff( c( 0, sort( v ), max( v ) + 3L ) ) )
+}
+
+trinarynum1 <- function( n ) {
+  if ( n < 11L ) c( 1, 2, 4, 7, 13, 24, 44, 81, 149, 274 )[ n ]
+  else {
+    ( trinarynum1( n - 1L ) 
+    + trinarynum1( n - 2L ) 
+    + trinarynum1( n - 3L )
+    )
+  }
+}
+
+trinarynum <- Vectorize( trinarynum1, "n" )
+
+count_joltdiff_combos_v <- function( v ) {
+  r <- rle( diff( c( 0, sort( v ), max( v ) + 3L ) ) )
+  n <- r$lengths[ 1L == r$values ]
+  nn <- n[ 1L < n ]
+  trinarynum( nn )
+}
