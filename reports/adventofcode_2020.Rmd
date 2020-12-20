@@ -207,3 +207,23 @@ Reduce( function( x, y ) x * bignum( y )
       )
 ```
 
+## [Day 11](https://adventofcode.com/2020/day/11)
+
+### Part 1
+
+```{r}
+dta_11a <- readLines( file.path( dtadir, "aoc2020_data_11a.txt" ) )
+seatmap <- parse_seat_map( dta_11a )
+seatmap_table( seatmap_steady_state( seatmap )$seatmap )
+```
+
+### Part 2
+
+```{r}
+adjmap <- find_seatmap_visible_seats( seatmap = seatmap )
+seatmap_table( seatmap_steady_state( seatmap
+                                   , reseat = reseat_seatmap_11b
+                                   , adjmap = adjmap
+                                   )$seatmap )
+```
+

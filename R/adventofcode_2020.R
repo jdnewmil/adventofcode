@@ -111,12 +111,19 @@ parse_forest <- function( lns ) {
 #' @return Integer matrix, N by 2, designating positions in tree map
 #'   that this trajectory starting at 1,1 will intersect.
 generate_trajectory <- function( row_delta, col_delta, row_max, col_max ) {
-  R <- seq( 1, row_max, by = row_delta ) # sequence of row values
-  # sequence of corresponding column values
-  C <- 1L + col_delta * ( seq.int( length( R ) ) - 1L )
+  if ( 0 == row_delta ) {
+    if ( 0 == col_delta )
+      stop( "cannot generate 0,0 trajectory" )
+    C <- seq( col_delta, col_max - 1L, by = col_delta )
+    R <- rep( 0, length( C ) )
+  } else {
+    R <- seq( 0, row_max - 1L, by = row_delta ) # sequence of row values
+    if ( 0 == col_delta ) C <- rep( 0, length( R ) )
+    else C <- col_delta * ( seq.int( length( R ) ) - 1L )
+  }
   # coordinate matrix for the trajectory
-  matrix( c( 1L + ( R - 1L ) %% row_max
-           , 1L + ( C - 1L ) %% col_max
+  matrix( c( 1L + R %% row_max
+           , 1L + C %% col_max
            )
         , ncol = 2L
         )
@@ -622,4 +629,184 @@ count_joltdiff_combos_v <- function( v ) {
   n <- r$lengths[ 1L == r$values ]
   nn <- n[ 1L < n ]
   trinarynum( nn )
+}
+
+# Day 11 ----
+
+parse_seat_map <- function( lns ) {
+  trans <- setNames( 1:3, c( ".", "L", "#" ) )
+  map <- (   lapply( lns, strsplit, split = "" )
+         %>% lapply( `[[`, i = 1L )
+         %>% do.call( rbind, . )
+         %>% `[`( trans, . )
+         %>% matrix( nrow = length( lns ) )
+         )
+  map1 <- matrix( 1
+                , nrow = length( lns ) + 2L
+                , ncol = ncol( map ) + 2L
+                )
+  map1[ seq( 2L, 1L + nrow( map ) )
+      , seq( 2L, 1L + ncol( map ) )
+      ] <- map
+  map1
+}
+
+reseat_seatmap <- function( seatmap ) {
+  adjacency <- matrix( c( -1, -1 # NW
+                        ,  0, -1 # W
+                        ,  1, -1 # SW
+                        ,  1,  0 # S
+                        ,  1,  1 # SE
+                        ,  0,  1 # E
+                        , -1,  1 # NE
+                        , -1,  0 # N
+                        )
+                     , ncol = 2L
+                     , byrow = TRUE
+                     )
+  sm <- seatmap
+  fmap <- function( x, y ) {
+    if ( 1L == x | 1L == y | nrow( sm ) == x | ncol( sm ) == y ) return( 1L )
+    loc <- matrix( c( x, y ), ncol = 2, nrow = 8, byrow = TRUE )
+    adj <- sm[ loc + adjacency ]
+    empties <- sum( 2L == adj, na.rm = TRUE )
+    fulls <- sum( 3L == adj, na.rm = TRUE )
+    here <- sm[ x, y ]
+    if ( 2L == here ) { # this seat is empty
+      if ( 0L == fulls ) 3L # no full seats? full
+      else here
+    } else if ( 3L == here ) { # this location is full
+      if ( 4L <= fulls ) 2L # 4 or more full? empty
+      else here
+    } else here
+  }
+  fmapv <- Vectorize( fmap, c( "x", "y" ) )
+  outer( seq.int( nrow( sm ) )
+       , seq.int( ncol( sm ) )
+       , fmapv
+       )
+}
+
+is_inside_border <- function( point, seatmap ) {
+  (  1L < point[ 1 ]
+  && 1L < point[ 2 ]
+  && point[ 1 ] < nrow( seatmap )
+  && point[ 2 ] < ncol( seatmap )
+  )
+}
+
+seatmap_border <- function( seatmap ) {
+  dta <- expand.grid( x = seq.int( nrow( seatmap ) )
+                    , y = seq.int( ncol( seatmap ) )
+                    )
+  dta$border <- FALSE
+  dta$border[ with( dta
+                  ,   1L == x
+                    | 1L == y
+                    | nrow( seatmap ) == x
+                    | ncol( seatmap ) == y
+                  ) ] <- TRUE
+  matrix( dta$border, ncol = ncol( seatmap ) )
+}
+
+seatmap_table <- function( seatmap ) {
+  bord <- 2 * ( nrow( seatmap ) + ncol( seatmap ) ) - 4L
+  chrs <- c( ".", "L", "#" )
+  tt <- table( factor( chrs[ seatmap ], levels = chrs ) )
+  tt[ 1 ] <- tt[ 1 ] - bord
+  tt
+}
+
+print_seatmap <- function( seatmap ) {
+  map <- matrix( seatmap[ !seatmap_border( seatmap ) ]
+               , nrow = nrow( seatmap ) - 2L
+               )
+  s <- (   map
+       %>% nrow()
+       %>% seq.int()
+       %>% sapply( function(i) {
+                     v <- map[i,]
+                     paste( c( ".", "L", "#" )[ v ], collapse = "" )
+                   }
+                 )
+       %>% paste( collapse = "\n" )
+       )
+  cat( s )
+}
+
+seatmap_steady_state <- function( seatmap, reseat = reseat_seatmap, ... ) {
+  nxt <- reseat( seatmap, ... )
+  ctr <- 1L
+  while ( !all( seatmap == nxt ) ) {
+    seatmap <- nxt
+    nxt <- reseat( seatmap, ... )
+    ctr <- ctr + 1L
+  }
+  list( seatmap = seatmap
+      , ctr = ctr
+      )
+}
+
+find_seatmap_first_visible <- function( dv, from, seatmap ) {
+  from <- matrix( from, ncol = 2 ) + dv
+  while ( is_inside_border( from, seatmap ) ) {
+    if ( 1L < seatmap[ from ] )
+      return( from[ 1L ]
+            + ( from[ 2L ] - 1L ) * nrow( seatmap )
+            )
+    from <- from + dv
+  }
+  NA
+}
+
+find_seatmap_visible_seats <- function( seatmap ) {
+  adjacency <- matrix( c( -1, -1 # NW
+                        ,  0, -1 # W
+                        ,  1, -1 # SW
+                        ,  1,  0 # S
+                        ,  1,  1 # SE
+                        ,  0,  1 # E
+                        , -1,  1 # NE
+                        , -1,  0 # N
+                        )
+                     , ncol = 2L
+                     , byrow = TRUE
+                     )
+  (   expand.grid( N = seq( 2L, nrow( seatmap ) - 1L )
+                 , M = seq( 2L, ncol( seatmap ) - 1L )
+                 )
+  %>% as.matrix()
+  %>% apply( 1L
+           , function( v ) { # for all positions
+               apply( adjacency # for all directions
+                    , 1L
+                    , find_seatmap_first_visible
+                    , from = v
+                    , seatmap = seatmap
+                    )
+             }
+           )
+  )
+}
+
+reseat_seatmap_11b <- function( seatmap, adjmap ) {
+  fmap <- function( x, y ) {
+    loc <- x + ( y - 1L ) * ( nrow( seatmap ) - 2L )
+    adj <- seatmap[ na.omit( adjmap[ , loc ] ) ]
+    empties <- sum( 2L == adj )
+    fulls <- sum( 3L == adj )
+    here <- seatmap[ x+1L, y+1L ]
+    if ( 2L == here ) { # this seat is empty
+      if ( 0L == fulls ) 3L # no full seats? full
+      else here
+    } else if ( 3L == here ) { # this location is full
+      if ( 5L <= fulls ) 2L # 5 or more full? empty
+      else here
+    } else here
+  }
+  fmapv <- Vectorize( fmap, c( "x", "y" ) )
+  rseq <- seq.int( nrow( seatmap ) - 2L )
+  cseq <- seq.int( ncol( seatmap ) - 2L )
+  seatmap[ rseq + 1L, cseq + 1L ] <- outer( rseq, cseq, fmapv )
+  seatmap
 }

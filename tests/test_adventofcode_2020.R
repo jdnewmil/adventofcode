@@ -98,7 +98,7 @@ test_that( "generate_trajectory", {
               )
 })
 
-test_that( "count_t", {
+test_that( "count_toboggan_trees", {
   fd <- c( "..##......."
            , "#...#...#.."
            , ".#....#..#."
@@ -573,4 +573,158 @@ test_that( "count_joltdiff_combos", {
 3"), quiet = TRUE )
   result <- count_joltdiff_combos_v( sample_dta2 )
   expect_equal( prod( result ), 19208L )
+})
+
+# Day 11 ----
+
+test_that( "parse_seat_map", {
+  lns <- readLines( textConnection(
+"L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL"))
+  seatmap <- parse_seat_map( lns )
+#  expect_named( seatmap, c( "trans", "map" ) )
+  expect_true( inherits( seatmap, "matrix" ) )
+  expect_equal( dim( seatmap ), c( 12L, 12L ) )
+})
+
+test_that( "reseat_seatmap", {
+  lns <- readLines( textConnection(
+    "L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL"))
+  seatmap <- parse_seat_map( lns )
+  result <- seatmap_table( reseat_seatmap( seatmap ) )
+  expect_equal( result[ "#" ], c( `#` = 71 ) )
+})
+
+test_that( "seatmap_steady_state", {
+  lns <- readLines( textConnection(
+"L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL"))
+  seatmap <- parse_seat_map( lns )
+  result <- seatmap_table( seatmap_steady_state(seatmap)$seatmap )
+  expect_equal( unname( result[ "#" ] ), 37 )
+})
+
+test_that( "reseat_seatmap_11b", {
+  lns <- readLines( textConnection(
+"L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL"))
+
+res1 <- parse_seat_map( readLines( textConnection(
+"#.##.##.##
+#######.##
+#.#.#..#..
+####.##.##
+#.##.##.##
+#.#####.##
+..#.#.....
+##########
+#.######.#
+#.#####.##"
+)))
+res2 <- parse_seat_map( readLines( textConnection(
+"#.LL.LL.L#
+#LLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLL#
+#.LLLLLL.L
+#.LLLLL.L#"
+)))
+
+  seatmap <- parse_seat_map( lns )
+  adjmap <- find_seatmap_visible_seats( seatmap = seatmap )
+  result <- reseat_seatmap_11b( seatmap, adjmap = adjmap )
+  expect_equal( result, res1 )
+  result2 <- reseat_seatmap_11b( result, adjmap = adjmap )
+  expect_equal( result2, res2 )
+})
+
+test_that( "find_seatmap_first_visible", {
+  lns <- readLines( textConnection(
+"L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL"))
+  seatmap <- parse_seat_map( lns )
+  result <- find_seatmap_first_visible( dv = c( 1, 0 )
+                                      , from = c( 2, 3 )
+                                      , seatmap = seatmap
+                                      )
+  expect_equal( result, 27 )
+  expect_equal( find_seatmap_first_visible( dv = c( 1, 0 )
+                                          , from = c( 3, 3 )
+                                          , seatmap = seatmap
+                                          )
+              , 29
+              )
+  expect_equal( find_seatmap_first_visible( dv = c( 1, 1 )
+                                          , from = c( 9, 2 )
+                                          , seatmap = seatmap
+                                          )
+              , 47
+  )
+})
+
+test_that( "find_seatmap_visible_seats", {
+  lns <- readLines( textConnection(
+"L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL"))
+  seatmap <- parse_seat_map( lns )
+  result <- find_seatmap_visible_seats( seatmap = seatmap )
+  expect_equal( result[ , 1 ]
+              , c( NA, NA, NA, 15, 27, 38, NA, NA )
+              )
+  expect_equal( result[ , 11 ]
+                , c( NA, 14, 15, 27, 39, 38, NA, NA )
+  )
 })
