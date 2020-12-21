@@ -728,3 +728,113 @@ L.LLLLL.LL"))
                 , c( NA, 14, 15, 27, 39, 38, NA, NA )
   )
 })
+
+# Day 12----
+
+test_that( "", {
+  sample_traj <- readLines( textConnection(
+"F10
+N3
+F7
+R90
+F11"))
+  result <- parse_traj( sample_traj )
+  expect_s3_class( result, "data.frame" )
+  expect_equal( result$dir, c( "F", "N", "F", "R", "F" ) )
+  expect_equal( result$mag, c( 10L, 3L, 7L, 90L, 11L ) )
+  expect_equal( result$is_abs, c( FALSE, TRUE, FALSE, FALSE, FALSE ) )
+  expect_equal( result$ang, c( 0L, 1L, 0L, 3L, 0L ) )
+})
+
+test_that( "traverse_12a", {
+  sample_traj <- readLines( textConnection(
+"F10
+N3
+F7
+R90
+F11" ) )
+  traj <- parse_traj( sample_traj )
+  result <- traverse_12a( traj )
+  expect_s3_class( result, "data.frame" )
+  expect_equal( result$pos_x
+              , c( 10, 10, 17, 17, 17 )
+              )
+  expect_equal( result$pos_y
+              , c( 0, 3, 3, 3, -8 )
+              )
+  expect_equal( result$pos_ang
+              , c( 0L, 0L, 0L, 3L, 3L )
+              )
+  sample_traj2 <- readLines( textConnection(
+"F10
+L180
+R270" ) )
+  traj2 <- parse_traj( sample_traj2 )
+  result2 <- traverse_12a( traj2 )
+  expect_equal( result2$pos_ang
+              , c( 0, 2, 3 )
+              )
+})
+
+test_that( "get_rot90_matrix", {
+  expect_equal( get_rot90_matrix( "L", 0 )
+              , matrix( c( 1, 0, 0, 1 ), nrow = 2L )
+              )
+  expect_equal( get_rot90_matrix( "R", 0 )
+              , matrix( c( 1, 0, 0, 1 ), nrow = 2L )
+              )
+  expect_equal( get_rot90_matrix( "L", 90 )
+              , matrix( c( 0, 1, -1, 0 ), nrow = 2L )
+              )
+  expect_equal( get_rot90_matrix( "R", 90 )
+              , matrix( c( 0, -1, 1, 0 ), nrow = 2L )
+              )
+  expect_equal( get_rot90_matrix( "L", 180 )
+              , matrix( c( -1, 0, 0, -1 ), nrow = 2L )
+              )
+  expect_equal( get_rot90_matrix( "R", 180 )
+              , matrix( c( -1, 0, 0, -1 ), nrow = 2L )
+              )
+  expect_equal( get_rot90_matrix( "L", 270 )
+              , matrix( c( 0, -1, 1, 0 ), nrow = 2L )
+              )
+  expect_equal( get_rot90_matrix( "R", 270 )
+              , matrix( c( 0, 1, -1, 0 ), nrow = 2L )
+              )
+})
+
+test_that( "traverse_12b", {
+  sample_traj <- readLines( textConnection(
+"F10
+N3
+F7
+R90
+F11" ) )
+  traj <- parse_traj( sample_traj )
+  result <- traverse_12b( traj )
+  expect_s3_class( result, "data.frame" )
+  expect_equal( result$pos_x
+              , c( 100, 100, 170, 170, 214 )
+              )
+  expect_equal( result$pos_y
+              , c( 10, 10, 38, 38, -72 )
+              )
+  expect_equal( result$wp_x
+              , c( 10L, 10L, 10L, 4L, 4L )
+              )
+  expect_equal( result$wp_y
+              , c( 1L, 4L, 4L, -10L, -10L )
+              )
+  sample_traj2 <- readLines( textConnection(
+"F10
+L180
+R270" ) )
+  traj2 <- parse_traj( sample_traj2 )
+  result2 <- traverse_12b( traj2 )
+  expect_equal( result2$wp_x
+              , c( 10, -10, 1 )
+              )
+  expect_equal( result2$wp_y
+              , c( 1, -1, -10 )
+              )
+})

@@ -810,3 +810,122 @@ reseat_seatmap_11b <- function( seatmap, adjmap ) {
   seatmap[ rseq + 1L, cseq + 1L ] <- outer( rseq, cseq, fmapv )
   seatmap
 }
+
+# Day 12 ----
+
+parse_traj <- function( lns ) {
+  trav_dta <- read.table( text =
+"dir is_abs  ang
+N      TRUE   1
+E      TRUE   0
+W      TRUE   2
+S      TRUE   3
+L      FALSE  1
+R      FALSE  3
+F      FALSE  0
+", header = TRUE, as.is=TRUE )
+  result <- data.frame( lns = lns
+                      , dir = substr( lns, 1, 1 )
+                      , mag = as.integer( substr( lns, 2, nchar( lns ) ) )
+                      , stringsAsFactors = FALSE
+                      )
+  inner_join( result, trav_dta, by = "dir" )
+}
+
+traverse_12a <- function( traj, initial_ang = 0L, initial_pos = c( 0L, 0L ) ) {
+  rel_pos <- matrix( c(  1L,  0L
+                      ,  0L,  1L
+                      , -1L,  0L
+                      ,  0L, -1L
+                      )
+                   , ncol = 2L
+                   , byrow = TRUE
+                   )
+  positions <- matrix( NA_integer_, nrow = nrow( traj ), ncol = 2L )
+  angs <- integer( nrow( traj ) )
+  for ( i in seq_along( traj$ang ) ) {
+    if ( traj$is_abs[ i ] ) {
+      d_pos <- traj$mag[ i ] * rel_pos[ traj$ang[ i ] + 1L, ]
+    } else if ( "F" == traj$dir[ i ] ) {
+      d_pos <- traj$mag[ i ] * rel_pos[ initial_ang + 1L, ]
+    } else {
+      initial_ang <- ( initial_ang
+                     + ifelse( "L"==traj$dir[ i ], 1L, -1L )
+                       * traj$mag[ i ] %/% 90L
+                     ) %% 4L
+      d_pos <- c( 0, 0 )
+      stopifnot( 0 == ( traj$mag[ i ] %% 90L ) )
+    }
+    initial_pos <- initial_pos + d_pos
+    positions[ i, ] <- initial_pos
+    angs[ i ] <- initial_ang
+  }
+  traj$pos_x <- positions[ , 1L ]
+  traj$pos_y <- positions[ , 2L ]
+  traj$pos_ang <- angs
+  traj
+}
+
+get_final_manhattan <- function( trav ) {
+  with( trav[ nrow( trav ), ], abs( pos_x ) + abs( pos_y ) )
+}
+
+ref_dta_12b <- list(
+  rel_left = array( c(  1,  0 # 0
+                     ,  0,  1
+                     ,  0,  1 # 90
+                     , -1,  0
+                     , -1,  0 # 180
+                     ,  0, -1
+                     ,  0, -1 # 270
+                     ,  1,  0
+                     )
+                  , dim = c( 2L, 2, 4L )
+                  )
+)
+
+get_rot90_matrix <- function( dir, mag ) {
+  mul <- ifelse( "L" == dir, 1L, -1L )
+  idx <- ( 1L
+         + ( ( mul * mag ) %/% 90L ) %% 4L
+         )
+  ref_dta_12b$rel_left[ , , idx ]
+}
+
+traverse_12b <- function( traj
+                        , initial_pos = c( 0L, 0L )
+                        , initial_wp = c( 10L, 1L )
+                        ) {
+  rel_pos <- matrix( c(  1L,  0L
+                      ,  0L,  1L
+                      , -1L,  0L
+                      ,  0L, -1L
+                      )
+                   , ncol = 2L
+                   , byrow = TRUE
+                   )
+  positions <- matrix( NA_integer_, nrow = 2L, ncol = nrow( traj ) )
+  wp_positions <- positions
+  for ( i in seq_along( traj$ang ) ) {
+    if ( traj$is_abs[ i ] ) {
+      initial_wp <- initial_wp + traj$mag[ i ] * rel_pos[ traj$ang[ i ] + 1L, ]
+    } else if ( "F" == traj$dir[ i ] ) {
+      initial_pos <- initial_pos + traj$mag[ i ] * initial_wp
+    } else {
+      initial_wp <- as.vector( get_rot90_matrix( dir = traj$dir[ i ]
+                                               , mag = traj$mag[ i ]
+                                               )
+                             %*% initial_wp
+                             )
+      stopifnot( 0 == ( traj$mag[ i ] %% 90L ) )
+    }
+    positions[ , i ] <- initial_pos
+    wp_positions[ , i ] <- initial_wp
+  }
+  traj$pos_x <- positions[ 1L, ]
+  traj$pos_y <- positions[ 2L, ]
+  traj$wp_x <- wp_positions[ 1L, ]
+  traj$wp_y <- wp_positions[ 2L, ]
+  traj
+}
+
