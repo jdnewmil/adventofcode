@@ -6,6 +6,8 @@ output: html_notebook
 
 ```{r}
 suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
   library(ggplot2)
   library(openssl)
 })
@@ -225,5 +227,23 @@ seatmap_table( seatmap_steady_state( seatmap
                                    , reseat = reseat_seatmap_11b
                                    , adjmap = adjmap
                                    )$seatmap )
+```
+
+## [Day 12](https://adventofcode.com/2020/day/12)
+
+### Part 1
+
+```{r}
+dta_12a <- readLines( file.path( dtadir, "aoc2020_data_12a.txt" ) )
+traj <- parse_traj( dta_12a )
+trav_12a <- traverse_12a( traj )
+get_final_manhattan( trav_12a )
+```
+
+### Part 2
+
+```{r}
+trav_12b <- traverse_12b( traj )
+get_final_manhattan( trav_12b )
 ```
 
