@@ -5,6 +5,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(tidyr)
   library(purrr)
+  library(gmp)
 })
 
 rdir <- "../R"
@@ -838,3 +839,65 @@ R270" ) )
               , c( 1, -1, -10 )
               )
 })
+
+# Day 13 ----
+
+test_that( "parse_sched_13", {
+  samp_sched <- readLines( textConnection(
+"939
+7,13,x,x,59,x,31,19
+"))
+  result <- parse_sched_13( samp_sched )
+  expect_equal( result$earliest, 939L )
+  expect_equal( result$ids, c( 7L, 13L, 59L, 31L, 19L ) )
+  # for part b
+  expect_equal( result$idxs, c( 1L, 2L, 5L, 7L, 8L ) )
+})
+
+test_that( "egcd", {
+  result <- egcd( 240, 46 ) # from Wikipedia https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+  expect_equal( result$gcd, 2L )
+  expect_equal( result$bezout_a, -9 )
+  expect_equal( result$bezout_b, 47 )
+  result2 <- egcd( as.bigz( 7 ), as.bigz( 13 ) )
+  expect_equal( result2$gcd, 1L )
+  expect_equal( result2$bezout_a, 2 )
+  expect_equal( result2$bezout_b, -1 )
+})
+
+
+
+test_that( "find_next_bus_13a", {
+  samp_sched <- list( earliest = 939L
+                    , ids = c( 7L, 13L, 59L, 31L, 19L )
+                    )
+  result <- find_next_bus_13a( samp_sched )
+  expect_equal( result$id, 59L )
+  expect_equal( result$delay, 5L )
+})
+
+test_that( "find_earliest_13b", {
+  samp_sched1 <- list( earliest = 939L
+                     , ids = c( 3L, 5L )
+                     , idxs = c( 2L, 5L )
+                     )
+  expect_equal( find_earliest_13b( samp_sched1 ), 11L )
+  samp_sched2 <- list( earliest = 939L
+                     , ids = c( 3L, 5L, 7L )
+                     , idxs = c( 2L, 5L, 7L  )
+                     )
+  expect_equal( as.integer( find_earliest_13b( samp_sched2 ) ), 71L )
+  samp_sched4b <- readLines( textConnection(
+    "0
+3,4,x,5
+"))
+  samp_sched4b <- parse_sched_13( samp_sched4b )
+  expect_equal( find_earliest_13b( samp_sched4b ), as.bigz( 27L ) )
+  samp_sched3 <- readLines( textConnection(
+    "939
+7,13,x,x,59,x,31,19
+"))
+  samp_sched3 <- parse_sched_13( samp_sched3 )
+  expect_equal( find_earliest_13b( samp_sched3 ), as.bigz( 1068781L ) )
+})
+
