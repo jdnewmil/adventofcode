@@ -9,7 +9,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(tidyr)
   library(ggplot2)
-  library(openssl)
+  library(gmp)
 })
 rdir <- "R" # set Rmarkdown to evaluate in project directory
 dtadir <- "data"
@@ -204,7 +204,7 @@ countbin2 <- function( n ) {
 ```
 
 ```{r}
-Reduce( function( x, y ) x * bignum( y )
+Reduce( function( x, y ) x * as.bigz( y )
       , count_joltdiff_combos_v( dta_10a )
       )
 ```
@@ -245,5 +245,23 @@ get_final_manhattan( trav_12a )
 ```{r}
 trav_12b <- traverse_12b( traj )
 get_final_manhattan( trav_12b )
+```
+
+## [Day 13](https://adventofcode.com/2020/day/13)
+
+### Part 1
+
+```{r}
+dta_13a <- readLines( file.path( dtadir, "aoc2020_data_13a.txt" ) )
+sched_13a <- parse_sched_13( dta_13a )
+best_13a <- find_next_bus_13a( sched_13a )
+with( best_13a, id * delay )
+```
+
+### Part 2
+
+```{r}
+sched_13b <- parse_sched_13( dta_13a )
+find_earliest_13b( sched_13b )
 ```
 

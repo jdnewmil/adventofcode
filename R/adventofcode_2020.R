@@ -929,3 +929,95 @@ traverse_12b <- function( traj
   traj
 }
 
+# Day 13 ----
+
+parse_sched_13 <- function( lns ) {
+  earliest <- as.integer( lns[ 1 ] )
+  ids <- scan( text = lns[ 2 ], sep = ",", what = character(0), quiet = TRUE )
+  ids <- suppressWarnings( as.integer( ids ) )
+  idxs <- which( !is.na( ids ) )
+  list( earliest = earliest
+      , ids = ids[ idxs ]
+      , idxs = idxs
+      )
+}
+
+find_next_bus_13a <- function( sched ) {
+  delay <- sched$ids - ( sched$earliest %% sched$ids )
+  idx <- which.min( delay )
+  id <- sched$ids[ idx ]
+  list( id = id
+      , delay = delay[ idx ]
+      )
+}
+
+#' Extended Euclidean gcd
+#' 
+#' @param a Integer
+#' @param b Integer
+#' @return List of result integers:
+#'   \describe{
+#'     \item{gcd}{Integer, greatest common denominator}
+#'     \item{bezout_a}{Integer, Bezout coefficient for a}
+#'     \item{bezout_b}{Integer, Bezout coefficient for b}
+#'   }
+egcd <- function( a, b ) {
+  is_a_less_b <- a < b
+  if ( is_a_less_b ) {
+    r0 <- b
+    r1 <- a
+  } else {
+    r0 <- a
+    r1 <- b
+  }
+  #r0 <- max( a, b ); r1 <- min( a, b )
+  s0 <- 1L; s1 <- 0L
+  t0 <- 0L; t1 <- 1L
+  while( 0L != ( r <- r0 %% r1 ) ) {
+    q <- r0 %/% r1
+    s <- s0 - q * s1
+    t <- t0 - q * t1
+    s0 <- s1
+    s1 <- s
+    t0 <- t1
+    t1 <- t
+    r0 <- r1
+    r1 <- r
+  }
+  list( gcd = r1
+      , bezout_a = if ( is_a_less_b ) t else s
+      , bezout_b = if ( is_a_less_b ) s else t
+      )
+}
+
+find_earliest_13b_pair <- function( a, b, ra, rb ) {
+  g <- egcd( a, b )
+  ans0 <- rb * g$bezout_a * a + ra * g$bezout_b * b
+  stopifnot( 1 == g$gcd )
+  ab <- a * b
+  mab <- max( a, b )
+  ans1 <- ans0 %% ab
+  if ( ans1 < mab ) 
+    ans1 + ab
+  else
+    ans1
+}
+
+find_earliest_13b <- function( sched ) {
+  n <- sched$ids
+  last_n <- as.bigz( n[ 1L ] )
+  r <- ( 1L - sched$idxs ) %% sched$ids
+  last_r <- as.bigz( r[ 1L ] )
+  for ( i in seq( 2L, length( n ) ) ) {
+    N <- as.bigz( n[ i ] )
+    R <- as.bigz( r[ i ] )
+    ans <- find_earliest_13b_pair( last_n
+                                 , N
+                                 , last_r
+                                 , R
+                                 )
+    last_n <- last_n * N
+    last_r <- ans %% last_n
+  }
+  ans
+}
