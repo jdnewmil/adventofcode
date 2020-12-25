@@ -901,3 +901,50 @@ test_that( "find_earliest_13b", {
   expect_equal( find_earliest_13b( samp_sched3 ), as.bigz( 1068781L ) )
 })
 
+# Day 14 ----
+
+test_that( "parse_14a", {
+  sample1 <- readLines( textConnection(
+"mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
+mem[8] = 11
+mem[7] = 101
+mem[8] = 0
+" ) )
+  result <- parse_14a( sample1 )
+  expect_equal( result$op, c( "mask", "mem", "mem", "mem" ) )
+  expect_equal( result$rhs
+              , c( "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"
+                 , "11"
+                 , "101"
+                 , "0"
+                 )
+              )
+  expect_equal( result$addr
+              , c( NA, "8", "7", "8" )
+              )
+})
+
+test_that( "interpret_p14", {
+  sample1 <- readLines( textConnection(
+"mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
+mem[8] = 11
+mem[7] = 101
+mem[8] = 0
+" ) )
+  code1 <- parse_14a( sample1 )
+  ans <- interpret_p14( code1 )
+  expect_equal( ans, as.bigz( 165 ) )
+})
+
+test_that( "interpret_p14b", {
+  sample1 <- readLines( textConnection(
+"mask = 000000000000000000000000000000X1001X
+mem[42] = 100
+mask = 00000000000000000000000000000000X0XX
+mem[26] = 1
+" ) )
+  code1 <- parse_14a( sample1 )
+  ans <- interpret_p14( code1, cpu = cpu_14a( 36, memory = mem_p14b( 36 ) ) )
+  expect_equal( ans, as.bigz( 208 ) )
+})
+

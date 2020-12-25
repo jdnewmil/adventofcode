@@ -265,3 +265,19 @@ sched_13b <- parse_sched_13( dta_13a )
 find_earliest_13b( sched_13b )
 ```
 
+## [Day 14](https://adventofcode.com/2020/day/14)
+
+### Part 1
+
+```{r}
+dta_14a <- readLines( file.path( dtadir, "aoc2020_data_14a.txt" ) )
+code_14a <- parse_14a( dta_14a )
+interpret_p14( code_14a )
+```
+
+### Part 2
+
+```{r}
+interpret_p14( code_14a, cpu = cpu_14a( 36, memory = mem_p14b( 36 ) ) )
+```
+
