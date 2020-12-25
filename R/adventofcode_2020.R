@@ -1187,3 +1187,24 @@ mem_p14b <- function( size ) {
         }
       )
 }
+
+# Day 15 ----
+
+seekn_15a <- function( v0, n ) {
+  ix <- v <- rep( NA, n )
+  v[ seq_along( v0 ) ] <- v0
+  for ( i in seq_along( v0 ) ) {
+    ix[ v[ i ] + 1L ] <- i
+  }
+  lastv <- v0[ length( v0 ) ]
+  for ( i in seq( length( v0 ) + 1L, n ) ) {
+    if ( is.na( prevv <- ix[ lastv + 1L ] ) ) {
+      ans <- 0
+    } else {
+      ans <- i - 1L - prevv
+    }
+    ix[ lastv + 1L ] <- i - 1L
+    lastv <- v[ i ] <- ans
+  }
+  ans
+}

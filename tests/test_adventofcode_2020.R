@@ -948,3 +948,12 @@ mem[26] = 1
   expect_equal( ans, as.bigz( 208 ) )
 })
 
+# Day 15 ----
+
+test_that( "seekn_15a", {
+  result <- seekn_15a( c( 0L, 3L, 6L ), 2020L )
+  expect_equal( result, 436L )
+  expect_equal( seekn_15a( c( 1L, 3L, 2L ), 2020L ), 1L )
+  expect_equal( seekn_15a( c( 3L, 1L, 2L ), 2020L ), 1836L )
+  #expect_equal( seekn_15a( c( 0L, 3L, 6L ), 30000000L ), 175594L )
+})

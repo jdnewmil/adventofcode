@@ -281,3 +281,20 @@ interpret_p14( code_14a )
 interpret_p14( code_14a, cpu = cpu_14a( 36, memory = mem_p14b( 36 ) ) )
 ```
 
+## [Day 15](https://adventofcode.com/2020/day/15)
+
+### Part 1
+
+```{r}
+seekn_15a( c( 18L, 11L, 9L, 0L, 5L, 1L ), 2020L )
+```
+
+### Part 2
+
+```{r}
+stt <- Sys.time()
+seekn_15a( c( 18L, 11L, 9L, 0L, 5L, 1L ), 30000000L )
+ett <- Sys.time()
+ett - stt
+```
+
