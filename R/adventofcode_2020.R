@@ -1021,3 +1021,169 @@ find_earliest_13b <- function( sched ) {
   }
   ans
 }
+
+# Day 14 ----
+
+bigz2numericv <- function( z, size ) {
+  normalize_numericv( as.numeric( charToRaw( as.character( z, b = 2 ) ) ) - 48, size )
+}
+
+numericv2bigz <- function( v ) {
+  as.bigz( paste0( "0b", rawToChar( as.raw( 1 * v + 48 ) ) ) )
+}
+
+normalize_numericv <- function( v, size ) {
+  c( rep( 0, size - length( v ) ), v )
+}
+
+numericv_AndNA <- function( v1, v2na ) {
+  v2na[ is.na( v2na ) ] <- 1
+  v1 & v2na
+}
+
+numericv_OrNA <- function( v1, v2na ) {
+  v2na[ is.na( v2na ) ] <- 0
+  v1 | v2na
+}
+
+numericv_Not <- function( v1 ) {
+  ifelse( v1, 0, 1 )
+}
+
+idx2numericv <- function( idx, size ) {
+  v <- rep( 0, size )
+  v[ rev( idx[ 0 != idx ] ) ] <- 1
+  v
+}
+
+bigz_bitV <- function( x, y, size ) {
+  #https://stackoverflow.com/questions/50077077/bitwise-operations-with-bigz-in-gmp
+  #express as numeric vectors of 0s and 1s
+  x1 <- bigz2numericv( x, size )
+  y1 <- bigz2numericv( y, size )
+  
+  list( x = x1
+      , y = y1
+      )
+}
+
+bigz_bitAnd <- function( x, y, size ) {
+  vlist <- bigz_bitV( x, y, size )
+  numericv2bigz( vlist$x & vlist$y )
+}
+
+bigz_bitOr <- function( x, y, size ) {
+  vlist <- bigz_bitV( x, y, size )
+  numericv2bigz( vlist$x | vlist$y )
+}
+
+mem_p14a <- function( size ) {
+  mem_hash <- hash::hash()
+  mask <- rep( NA, size )
+  list( write = function( addr, z ) {
+                  z <- (   bigz2numericv( z, size )
+                       %>% numericv_OrNA( mask ) # set 1 bits
+                       %>% numericv_AndNA( mask ) # set 0 bits
+                       %>% numericv2bigz()
+                       )
+                  mem_hash[[ as.character( addr ) ]] <<- z
+                }
+      , set_mask = function( v ) {
+                     mask <<- v
+                   }
+      , get_ram = function() {
+                    as.list( mem_hash )
+                  }
+      )
+}
+
+parse_mask_14a <- function( s ) {
+  suppressWarnings( as.numeric( strsplit( s, "" )[[ 1 ]] ) )
+}
+
+parse_14a <- function( lns ) {
+  (   data.frame( stmt = lns, stringsAsFactors = FALSE )
+  %>% filter( "" != stmt )
+  %>% mutate( lhs = sub( "^(.*) = .*$", "\\1", stmt )
+            , rhs = sub( "^.* = (.*)$", "\\1", stmt )
+            , op = sub( "^([^[]+).*$", "\\1", lhs )
+            , addr = ifelse( "mem"==op
+                           , sub( "^.*\\[(.*)\\]", "\\1", lhs )
+                           , NA
+                           )
+            )
+  )
+}
+
+#' define a virtual cpu
+cpu_14a <- function( size, memory = mem_p14a( size ) ) {
+  list( ops = list( mask = function( addr, arg1 ) memory$set_mask( parse_mask_14a( arg1 ) )
+                  , mem = function( addr, arg1 ) memory$write( as.bigz( addr )
+                                                           , as.bigz( arg1 )
+                                                           )
+                  )
+      , get_ram = function() {
+          memory$get_ram()
+        }
+  )
+}
+
+interpret_p14 <- function( code, cpu = cpu_14a( 36 ) ) {
+  (   code
+  %>% select( op, addr, rhs )
+  %>% pwalk( function( op, addr, rhs ) {
+               cpu$ops[[ op ]]( addr, rhs )
+             }
+           )
+  )
+  Reduce( `+`, cpu$get_ram() )
+}
+
+mem_p14b <- function( size ) {
+  mem_hash <- hash::hash()
+  mask <- list()
+  mask_ix <- rep( 0, size )
+  list( write = function( addr, z ) {
+                  if ( 0 < length( mask ) ) {
+                    # set addr bits to zero where NAs are found in mask
+                    addrz <- (   addr
+                             %>% bigz2numericv( size )
+                             %>% numericv_AndNA( numericv_Not( mask_ix ) )
+                             )
+                    # Or each possible mask with addrz and write it to memory
+                    walk( mask
+                        , function( . ) {
+                            k <- (   numericv_OrNA( ., v2na = addrz ) # set 1 bits
+                                 %>% numericv2bigz()
+                                 %>% as.character()
+                                 )
+                            mem_hash[[ k ]] <- z
+                          }
+                        )
+                    invisible(NULL)
+                  } else {
+                    mem_hash[[ addr ]] <- z
+                  }
+                }
+      , set_mask = function( v ) {
+                     mask_ix <<- is.na( v )
+                     v0 <- v
+                     v0[ mask_ix ] <- 0
+                     mask <<- (   v
+                              %>% is.na()
+                              %>% which()
+                              %>% c( ., rep( 0, length( . ) ) )
+                              %>% matrix( nrow = 2, byrow = TRUE )
+                              %>% as.data.frame()
+                              %>% expand.grid()
+                              %>% t()
+                              %>% as.data.frame()
+                              %>% map( idx2numericv, size = size )
+                              %>% map( function( z ) z | v0 )
+                              )
+                   }
+      , get_ram = function() {
+          as.list( mem_hash )
+        }
+      )
+}
