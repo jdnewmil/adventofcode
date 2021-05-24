@@ -95,12 +95,12 @@ chk_pwd2b <- function( ixlo, ixhi, ltr, pwd ) {
 #'   for trees. Each line is a "row" of tree location information.
 #' @return Logical matrix, TRUE if a tree is in that row/column
 parse_forest <- function( lns ) {
-  (   lns   # vector of lines of periods and hashes
-  %>% strsplit( "" ) # list of vectors of characters
-  %>% unlist() # vector of characters
-  %>% matrix( nrow = length( lns )
-            , byrow = TRUE
-            )
+  (  lns   # vector of lines of periods and hashes
+  |> strsplit( "" ) # list of vectors of characters
+  |> unlist() # vector of characters
+  |> matrix( nrow = length( lns )
+           , byrow = TRUE
+           )
   ) == "#"
 }
 
@@ -172,16 +172,16 @@ parse_ppdata <- function( lns ) {
   # mark end of record lines
   eor <- "" == lns
   (   lns
-  %>% split( cumsum( eor ) ) # make a list of records (vectors of fields)
-  %>% map( paste, collapse = " " ) # list of single-record strings
-  %>% map( function( r ) # list of character vectors of fields
+  |> split( cumsum( eor ) ) # make a list of records (vectors of fields)
+  |> map( paste, collapse = " " ) # list of single-record strings
+  |> map( function( r ) # list of character vectors of fields
               scan( text = r
                   , what = character()
                   , quiet = TRUE
                   )
          )
-  %>% map( parse_pprec ) # list of data frames
-  %>% bind_rows()
+  |> map( parse_pprec ) # list of data frames
+  |> bind_rows()
   )
 }
 
@@ -272,8 +272,8 @@ validate_ppdata <- function( ppdata, enhanced = "4a" ) {
     eyr_ok <- ppdta_chk_int_range( ppdata$eyr, 2020, 2030 )
     names( fldok ) <- ppdata_field_info$field
     (   fldok
-    %>% reduce( pmin )
-    %>% as.logical()
+    |> reduce( pmin )
+    |> as.logical()
     & heightok
     & byr_ok
     & iyr_ok
@@ -281,8 +281,8 @@ validate_ppdata <- function( ppdata, enhanced = "4a" ) {
     )
   } else { # 4a
     (   fldok
-    %>% reduce( pmin )
-    %>% as.logical()
+    |> reduce( pmin )
+    |> as.logical()
     )
   }
 }
@@ -290,10 +290,10 @@ validate_ppdata <- function( ppdata, enhanced = "4a" ) {
 # Day 5 ----
 
 decode_bp_to_int <- function( s ) {
-  (   s
-  %>% gsub( "[FL]", "0", . )
-  %>% gsub( "[BR]", "1", . )
-  %>% strtoi( base = 2L )
+  (  s
+  |> (\(.) gsub( "[FL]", "0", . ))()
+  |> (\(.) gsub( "[BR]", "1", . ))()
+  |> strtoi( base = 2L )
   )
 }
 
@@ -315,16 +315,16 @@ seat_id_to_col <- function( si ) {
 parse_multiline_recs <- function( lns ) {
   # mark end of record lines
   eor <- "" == lns
-  (   lns
-  %>% split( cumsum( eor ) ) # make a list of records (vectors of fields)
-  %>% map( paste, collapse = " " ) # list of single-record strings
-  %>% map( function( r ) # list of character vectors of fields
+  (  lns
+  |> split( cumsum( eor ) ) # make a list of records (vectors of fields)
+  |> map( paste, collapse = " " ) # list of single-record strings
+  |> map( function( r ) # list of character vectors of fields
               scan( text = r
                   , what = character()
                   , quiet = TRUE
                   )
          )
-  %>% compact()
+  |> compact()
   )
 }
 
@@ -332,9 +332,9 @@ parse_multiline_recs <- function( lns ) {
 #' @param FUN Function, one of `union` (part 6a) or `intersect` (part 6b)
 #' @return Character vector, individual answers meeting criteria
 normalize_rec_answers <- function( rec, FUN = union ) {
-  (   rec
-  %>% strsplit( split = "" )
-  %>% reduce( FUN )
+  (  rec
+  |> strsplit( split = "" )
+  |> reduce( FUN )
   )
 }
 
@@ -344,10 +344,10 @@ normalize_rec_answers <- function( rec, FUN = union ) {
 #' @return List of character vectors, one for each record, identifying answers
 #'   meeting criteria for that party
 count_rec_answers <- function( recList, FUN = union ) {
-  (   recList
-  %>% map( normalize_rec_answers, FUN = FUN )
-  %>% map_int( length )
-  %>% as.vector()
+  (  recList
+  |> map( normalize_rec_answers, FUN = FUN )
+  |> map_int( length )
+  |> as.vector()
   )
 }
 
@@ -374,25 +374,26 @@ parse_keyval <- function( s, pat, keyname, valname ) {
 parse_bag_rules <- function( s ) {
   ruleno <- seq_along( s )
   some_bags_ix <- grepl( "\\D+ bags contain .*$", s )
-  DF <- (   s[ some_bags_ix ]
-        %>% parse_keyval( pat = "^(.*?) bags contain (.*)$"
-                        , "containing_bag_color"
-                        , "all_vals" )
-        %>% rowwise()
-        %>% mutate( data = (   all_vals
-                           %>% strsplit( ", " )
-                           %>% map( function( x )
+  DF <- (  s[ some_bags_ix ]
+        |> parse_keyval( pat = "^(.*?) bags contain (.*)$"
+                       , "containing_bag_color"
+                       , "all_vals"
+                       )
+        |> rowwise()
+        |> mutate( data = (   all_vals
+                          |> strsplit( ", " )
+                          |> map( function( x )
                                 sub( " bags?.?$", "", x ) )
-                           %>% map( parse_keyval
-                                  , pat = "^(.*?) (.*)$"
-                                  , keyname = "cbnum"
-                                  , valname = "cbcolor"
-                                  )
-                           )
-                  )
-        %>% ungroup()
-        %>% select( -all_vals )
-        %>% unnest( cols = "data" )
+                          |> map( parse_keyval
+                                , pat = "^(.*?) (.*)$"
+                                , keyname = "cbnum"
+                                , valname = "cbcolor"
+                                )
+                          )
+                 )
+        |> ungroup()
+        |> select( -all_vals )
+        |> unnest( cols = "data" )
         )
   DF
 }
@@ -463,25 +464,25 @@ cpu8a <- function() {
 
 
 parse_pgm_8a <- function( src ) {
-  (   data.frame( src = src
-                , stringsAsFactors = FALSE
-                )
-  %>% separate( src
-              , into = c( "op", "arg1" )
-              , sep = " " )
-  %>% mutate( arg1 = as.integer( arg1 ) )
+  (  data.frame( src = src
+               , stringsAsFactors = FALSE
+               )
+  |> separate( src
+             , into = c( "op", "arg1" )
+             , sep = " " )
+  |> mutate( arg1 = as.integer( arg1 ) )
   )
 }
 
 #' compile the code (create an "executable" object)
 compile_code_8a <- function( code ) {
   cpu <- cpu8a()
-  lcode <- (   code
-           %>% rowwise()
-           %>% mutate( fun = list( cpu$ops[[ op ]] )
-                     , marks = FALSE
-                     )
-           %>% ungroup()
+  lcode <- (  code
+           |> rowwise()
+           |> mutate( fun = list( cpu$ops[[ op ]] )
+                    , marks = FALSE
+                    )
+           |> ungroup()
            )
   list( exec1 = function() {
           p <- cpu$ptr() # instruction ptr
@@ -511,12 +512,12 @@ run_code_8a <- function( code ) {
 compile_code_8b <- function( code ) {
   last_run <- 0
   cpu <- cpu8a()
-  lcode <- (   code
-           %>% rowwise()
-           %>% mutate( fun = list( cpu$ops[[ op ]] )
-                     , marks = NA_integer_
-                     )
-           %>% ungroup()
+  lcode <- (  code
+           |> rowwise()
+           |> mutate( fun = list( cpu$ops[[ op ]] )
+                    , marks = NA_integer_
+                    )
+           |> ungroup()
            )
   list( exec1 = function() {
           p <- cpu$ptr() # instruction ptr
@@ -635,11 +636,11 @@ count_joltdiff_combos_v <- function( v ) {
 
 parse_seat_map <- function( lns ) {
   trans <- setNames( 1:3, c( ".", "L", "#" ) )
-  map <- (   lapply( lns, strsplit, split = "" )
-         %>% lapply( `[[`, i = 1L )
-         %>% do.call( rbind, . )
-         %>% `[`( trans, . )
-         %>% matrix( nrow = length( lns ) )
+  map <- (  lapply( lns, strsplit, split = "" )
+         |> lapply( `[[`, i = 1L )
+         |> (\(.) do.call( rbind, . ))()
+         |> (\(.) trans[ . ])()
+         |> matrix( nrow = length( lns ) )
          )
   map1 <- matrix( 1
                 , nrow = length( lns ) + 2L
@@ -721,15 +722,15 @@ print_seatmap <- function( seatmap ) {
   map <- matrix( seatmap[ !seatmap_border( seatmap ) ]
                , nrow = nrow( seatmap ) - 2L
                )
-  s <- (   map
-       %>% nrow()
-       %>% seq.int()
-       %>% sapply( function(i) {
+  s <- (  map
+       |> nrow()
+       |> seq.int()
+       |> sapply( function(i) {
                      v <- map[i,]
                      paste( c( ".", "L", "#" )[ v ], collapse = "" )
-                   }
-                 )
-       %>% paste( collapse = "\n" )
+                  }
+                )
+       |> paste( collapse = "\n" )
        )
   cat( s )
 }
@@ -775,9 +776,9 @@ find_seatmap_visible_seats <- function( seatmap ) {
   (   expand.grid( N = seq( 2L, nrow( seatmap ) - 1L )
                  , M = seq( 2L, ncol( seatmap ) - 1L )
                  )
-  %>% as.matrix()
-  %>% apply( 1L
-           , function( v ) { # for all positions
+  |> as.matrix()
+  |> apply( 1L
+          , function( v ) { # for all positions
                apply( adjacency # for all directions
                     , 1L
                     , find_seatmap_first_visible
@@ -785,7 +786,7 @@ find_seatmap_visible_seats <- function( seatmap ) {
                     , seatmap = seatmap
                     )
              }
-           )
+          )
   )
 }
 
@@ -1081,10 +1082,10 @@ mem_p14a <- function( size ) {
   mem_hash <- hash::hash()
   mask <- rep( NA, size )
   list( write = function( addr, z ) {
-                  z <- (   bigz2numericv( z, size )
-                       %>% numericv_OrNA( mask ) # set 1 bits
-                       %>% numericv_AndNA( mask ) # set 0 bits
-                       %>% numericv2bigz()
+                  z <- (  bigz2numericv( z, size )
+                       |> numericv_OrNA( mask ) # set 1 bits
+                       |> numericv_AndNA( mask ) # set 0 bits
+                       |> numericv2bigz()
                        )
                   mem_hash[[ as.character( addr ) ]] <<- z
                 }
@@ -1102,16 +1103,16 @@ parse_mask_14a <- function( s ) {
 }
 
 parse_14a <- function( lns ) {
-  (   data.frame( stmt = lns, stringsAsFactors = FALSE )
-  %>% filter( "" != stmt )
-  %>% mutate( lhs = sub( "^(.*) = .*$", "\\1", stmt )
-            , rhs = sub( "^.* = (.*)$", "\\1", stmt )
-            , op = sub( "^([^[]+).*$", "\\1", lhs )
-            , addr = ifelse( "mem"==op
-                           , sub( "^.*\\[(.*)\\]", "\\1", lhs )
-                           , NA
-                           )
-            )
+  (  data.frame( stmt = lns, stringsAsFactors = FALSE )
+  |> filter( "" != stmt )
+  |> mutate( lhs = sub( "^(.*) = .*$", "\\1", stmt )
+           , rhs = sub( "^.* = (.*)$", "\\1", stmt )
+           , op = sub( "^([^[]+).*$", "\\1", lhs )
+           , addr = ifelse( "mem"==op
+                          , sub( "^.*\\[(.*)\\]", "\\1", lhs )
+                          , NA
+                          )
+           )
   )
 }
 
@@ -1129,12 +1130,12 @@ cpu_14a <- function( size, memory = mem_p14a( size ) ) {
 }
 
 interpret_p14 <- function( code, cpu = cpu_14a( 36 ) ) {
-  (   code
-  %>% select( op, addr, rhs )
-  %>% pwalk( function( op, addr, rhs ) {
+  (  code
+  |> select( op, addr, rhs )
+  |> pwalk( function( op, addr, rhs ) {
                cpu$ops[[ op ]]( addr, rhs )
-             }
-           )
+            }
+          )
   )
   Reduce( `+`, cpu$get_ram() )
 }
@@ -1146,16 +1147,16 @@ mem_p14b <- function( size ) {
   list( write = function( addr, z ) {
                   if ( 0 < length( mask ) ) {
                     # set addr bits to zero where NAs are found in mask
-                    addrz <- (   addr
-                             %>% bigz2numericv( size )
-                             %>% numericv_AndNA( numericv_Not( mask_ix ) )
+                    addrz <- (  addr
+                             |> bigz2numericv( size )
+                             |> numericv_AndNA( numericv_Not( mask_ix ) )
                              )
                     # Or each possible mask with addrz and write it to memory
                     walk( mask
                         , function( . ) {
-                            k <- (   numericv_OrNA( ., v2na = addrz ) # set 1 bits
-                                 %>% numericv2bigz()
-                                 %>% as.character()
+                            k <- (  numericv_OrNA( ., v2na = addrz ) # set 1 bits
+                                 |> numericv2bigz()
+                                 |> as.character()
                                  )
                             mem_hash[[ k ]] <- z
                           }
@@ -1169,17 +1170,17 @@ mem_p14b <- function( size ) {
                      mask_ix <<- is.na( v )
                      v0 <- v
                      v0[ mask_ix ] <- 0
-                     mask <<- (   v
-                              %>% is.na()
-                              %>% which()
-                              %>% c( ., rep( 0, length( . ) ) )
-                              %>% matrix( nrow = 2, byrow = TRUE )
-                              %>% as.data.frame()
-                              %>% expand.grid()
-                              %>% t()
-                              %>% as.data.frame()
-                              %>% map( idx2numericv, size = size )
-                              %>% map( function( z ) z | v0 )
+                     mask <<- (  v
+                              |> is.na()
+                              |> which()
+                              |> (\(.) c( ., rep( 0, length( . ) ) ))()
+                              |> matrix( nrow = 2, byrow = TRUE )
+                              |> as.data.frame()
+                              |> expand.grid()
+                              |> t()
+                              |> as.data.frame()
+                              |> map( idx2numericv, size = size )
+                              |> map( function( z ) z | v0 )
                               )
                    }
       , get_ram = function() {
@@ -1208,3 +1209,268 @@ seekn_15a <- function( v0, n ) {
   }
   ans
 }
+
+# Day 16 ----
+
+parse_16a <- function( lns ) {
+  cmd_ix_pat <- "^([A-Za-z ]+): *(.*)$"
+  cmd_ix <- grep( cmd_ix_pat, lns )
+  result <- (  data.frame( cmd  = sub( cmd_ix_pat, "\\1", lns[ cmd_ix ] )
+                         , arg1 = sub( cmd_ix_pat, "\\2", lns[ cmd_ix ] )
+                         , ix_start = cmd_ix
+                         , ix_delta = c( cmd_ix[ -1 ] , length( lns ) ) - cmd_ix - 1L
+                         , stringsAsFactors = FALSE
+                         )
+            |> rowwise()
+            |> mutate( argn = list( if ( cmd %in% c( "your ticket"
+                                                   , "nearby tickets"
+                                                   )
+                                       ) {
+                                       if ( 0 == ix_delta ) NULL
+                                       else (  lns[ seq( ix_start + 1, ix_start + ix_delta )]
+                                            |> strsplit( "," )
+                                            |> lapply( as.integer )
+                                            )
+                                     } else {
+                                       (  arg1
+                                       |> strsplit( "or" )
+                                       |> lapply( function( s ) {
+                                              (  s
+                                              |> strsplit( "-" )
+                                              |> lapply( (\(.) . |> unlist() |> as.integer() )
+                                                       )
+                                              )
+                                             }
+                                           )
+                                       |> unlist( recursive = FALSE )
+                                       )
+                                     }
+                                   )
+                      )
+            |> ungroup()
+            |> select( -ix_start, -ix_delta )
+            |> as.data.frame()
+            )
+  rownames( result ) <- result$cmd
+  result
+}
+
+validmap_addlist_16a <- function( vmap, L ) {
+  for ( rng in L ) {
+    vmap[ seq( 1L + rng[ 1L ]
+             , 1L + rng[ 2L ]
+             )
+        ] <- TRUE
+  }
+  vmap
+}
+
+get_nearby_ticket_slots <- function( tnotes ) {
+  (  tnotes
+  |> filter( cmd == "nearby tickets" )
+  |> (\(.) .[[ "argn" ]])()
+  |> as.data.frame()
+  |> (\(.) setNames( ., sprintf( "N%03d", seq_along( . ) ) ) )()
+  )
+}
+
+get_all_ticket_slots <- function( tnotes ) {
+  (  tnotes
+  |> filter( cmd == "your ticket" )
+  |> (\(.) .[[ "argn" ]])()
+  |> (\(.) .[[ 1 ]])()
+  |> (\(.) .[ 1 ])()
+  |> as.data.frame()
+  |> setNames( "Y" )
+  |> bind_cols( get_nearby_ticket_slots( tnotes ) )
+  )
+}
+
+get_ticket_vmaps <- function( tnotes, mapsize ) {
+  (  tnotes
+  |> filter( !cmd %in% c( "your ticket", "nearby tickets" ) )
+  |> (\(.) .[[ "argn" ]])()
+  |> map( function( l ) {
+            validmap_addlist_16a( logical( mapsize ), L = l )
+          }
+        )
+  |> setNames( tnotes$cmd[ !tnotes$cmd %in% c( "your ticket", "nearby tickets" ) ] )
+  |> as.data.frame()
+  )
+}
+
+ticket_scanning_errors0 <- function( vmaps, slots, exclude_fields = integer(), exclude_slots = integer() ) {
+  if ( 0 < length( exclude_fields ) ) {
+    vm <- vmaps[ , -exclude_fields ]
+  } else vm <- vmaps
+  if ( 0 < length( exclude_slots ) ) {
+    sl <- slots[ -exclude_slots, ]
+  } else sl <- slots
+  v0 <- 0 < rowSums( vm )
+  (   sl
+  |> map_int( function( v ) {
+            ix <- v0[ v + 1L ]
+            ix[ is.na( ix ) ] <- FALSE
+            sum( v[ !ix ] )
+           }
+         )
+  )
+}
+
+ticket_scanning_errors <- function( tnotes, exclude_fields = integer(), exclude_slots = integer(), mapsize = 1000L ) {
+  # vmap <- (   tnotes
+  #         %>% filter( !cmd %in% c( "your ticket", "nearby tickets", exclude_fields ) )
+  #         %>% `[[`( "argn" )
+  #         %>% reduce( validmap_addlist_16a, .init = logical(0) )
+  #         %>% map_lgl( isTRUE )
+  #         )
+  # (   tnotes
+  # %>% filter( cmd == "nearby tickets" )
+  # %>% `[[`( "argn" )
+  # %>% unlist( recursive = FALSE )
+  # %>% map( function( v ) {
+  #           ix <- vmap[ v + 1L ]
+  #           ix[ is.na( ix ) ] <- FALSE
+  #           sum( v[ !ix ] )
+  #          }
+  #        )
+  # %>% unlist()
+  # )
+  vmaps <- get_ticket_vmaps( tnotes, mapsize = mapsize )
+  slots <- get_all_ticket_slots( tnotes )
+  ticket_scanning_errors0( vmaps = vmaps
+                         , slots = slots
+                         , exclude_fields = exclude_fields
+                         , exclude_slots = exclude_slots
+                         )
+}
+
+ticket_scanning_error_rate <- function( tnotes ) {
+  (  ticket_scanning_errors( tnotes )
+  |> sum()
+  )
+}
+
+ticket_is_valid <- function( vmap, v ) {
+  ans <- vmap[ v + 1L ]
+  ans[ is.na( ans ) ] <- FALSE
+  ans
+}
+
+id_ticket_fields_16b <- function( tnotes, mapsize = 1000L ) {
+  # vmaps <- (   tnotes
+  #          %>% filter( !cmd %in% c( "your ticket", "nearby tickets" ) )
+  #          %>% `[[`( "argn" )
+  #          %>% map( function( l ) {
+  #                  validmap_addlist_16a( logical( mapsize ), L = l )
+  #                }
+  #              )
+  #          %>% setNames( tnotes$cmd[ !tnotes$cmd %in% c( "your ticket", "nearby tickets" ) ] )
+  #          %>% as.data.frame()
+  #          )
+  slots <- get_all_ticket_slots( tnotes )
+  vmaps <- get_ticket_vmaps( tnotes, mapsize = mapsize )
+  slot_sols <- field_sols <- rep( NA_integer_
+                                , length( vmaps )
+                                )
+  while ( sum( ! is.na( slots ) ) < length( vmaps ) ) {
+    exclude_slots <- slot_sols[ !is.na( slot_sols ) ]
+    exclude_fields <- field_sols[ !is.na( field_sols ) ]
+    tsok <- 0 == ticket_scanning_errors0( vmaps
+                                        , slots
+                                        , exclude_fields = exclude_fields
+                                        , exclude_slots = exclude_slots
+                                        )
+    mat <- as.array( as.matrix( vmaps )
+                     , dim = c( nrow( vmaps )
+                                , ncol( vmaps )
+                     )
+                     , dimnames = list( values = sprintf( "X%03d", seq_along( vmaps ) )
+                                        , fields = names( vmaps )
+                     )
+    )
+    a <- outer( mat
+              , seq.int( vmaps ) |> setNames( names( vmaps ) )
+              , FUN = function( x, y )
+                  vmaps[ matrix( c( x + 1L, y ), ncol = 2L ) ]
+              )
+    a1[ sol, , ] <- a1[ , , pos ] <- FALSE
+    
+  }
+    
+  tsok <- 0 == ticket_scanning_errors( tnotes )
+  mat <- (  tnotes[ c( "your ticket", "nearby tickets" ) , "argn" ]
+         |> unlist( recursive = FALSE )
+         |> purrr::keep( function( L ) 0 < length( L ) && !is.null( L ) )
+         |> (\(.) .[ c( TRUE, tsok[ -1 ] ) ])()
+         |> as.data.frame()
+         |> (\(.) setNames( ., c( "Y", sprintf( "N%03d", seq.int( length( . ) - 1L ) ) ) ) )()
+         |> as.matrix()
+         |> as.array( dim = c( nrow( . ), ncol( . ) ), dimnames = list( NULL, NULL ) )
+         )
+  rownames( mat ) <- sprintf( "X%03d", seq_along( vmaps ) )
+  a <- outer( mat
+            , seq.int( vmaps ) |> setNames( names( vmaps ) )
+            , FUN = function( x, y )
+                vmaps[ matrix( c( x + 1L, y ), ncol = 2L ) ]
+            )
+  am <- apply( a, c( 1L, 3L ), all )
+  sol <- which( 1L == rowSums( am ) )
+  pos <- which( 1L == am[ sol, ] )
+  stopifnot( 1L == length( sol ) )
+  poss <- sols <- rep( NA_integer_
+                     , length( vmaps )
+                     )
+  names( sols ) <- rownames( a )
+  names( poss ) <- names( vmaps )
+  sols[ sol ] <- pos
+  poss[ pos ] <- sol
+  a1 <- a
+  while ( sum( ! is.na( sols ) ) < length( vmaps ) ) {
+    a1[ sol, , ] <- a1[ , , pos ] <- FALSE
+    am <- apply( a1, c( 1L, 3L ), all, na.rm = TRUE )
+    sol <- which( 1L == rowSums( am ) )
+    if ( 1L == length( sol ) ) {
+      pos <- which( 1L == am[ sol, ] )
+    } else {
+      pos <- which( 1L == colSums( am ) )
+      stopifnot( 1L == length( pos ) )
+      sol <- which( 1L == am[ , pos ] )
+      stopifnot( 1L == length( sol ) )
+    }
+    #pos <- seq.int( length( vmaps ) )[ is.na( poss ) ][ pos ]
+    #sol <- seq.int( length( vmaps ) )[ is.na( sols ) ][ sol ]
+    poss[ pos ] <- sol
+    sols[ sol ] <- pos
+  }
+  #stopifnot( !any( duplicated( ordr ) ) )
+  poss
+}
+
+# Day 19 ----
+
+Seq <- function( rules ) {
+  v <- strsplit( trimws( s ), split = " +" )
+  function( s ) {
+    
+  }
+}
+
+parse_19a <- function( lns ) {
+  brk <- which( "" == lns )[ 1 ]
+  rules <- (  data.frame( ln = lns[ seq.int( brk - 1L )]
+                        , stringsAsFactors = FALSE
+                        )
+           |> separate( ln, into = c( "ruleno", "rhs" ), sep = ":" )
+           |> mutate( sq = strsplit( rhs, "|", fixed = TRUE )
+                    )
+           |> mutate( ruleno = as.integer( ruleno ) )
+           |> arrange( ruleno )
+           )
+  rules
+}
+
+Char <- function(...) {
+  satisfy( function(x) { return( !!length( grep("[A-Za-z]", x ) ) ) } )
+}
+

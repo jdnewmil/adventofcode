@@ -957,3 +957,140 @@ test_that( "seekn_15a", {
   expect_equal( seekn_15a( c( 3L, 1L, 2L ), 2020L ), 1836L )
   #expect_equal( seekn_15a( c( 0L, 3L, 6L ), 30000000L ), 175594L )
 })
+
+# Day 16 ----
+
+test_that( "parse_16a", {
+  samp1 <-
+"class: 1-3 or 5-7
+row: 6-11 or 33-44
+seat: 13-40 or 45-50
+
+your ticket:
+7,1,14
+
+nearby tickets:
+7,3,47
+40,4,50
+55,2,20
+38,6,12
+"
+  lns <- readLines( textConnection( samp1 ) )
+  result <- parse_16a( lns )
+  expect_equal( nrow( result ), 5L )
+  expect_equal( result$cmd
+              , c( "class", "row", "seat", "your ticket", "nearby tickets" )
+              )
+  expect_equal( result$arg1
+              , c( "1-3 or 5-7"
+                 , "6-11 or 33-44"
+                 , "13-40 or 45-50"
+                 , ""
+                 , ""
+                 )
+              )
+  expect_equal( result$argn
+              , list( list( c( 1L, 3L )
+                          , c( 5L, 7L )
+                          )
+                    , list( c( 6L, 11L )
+                          , c( 33L, 44L )
+                          )
+                    , list( c( 13L, 40L )
+                          , c( 45L, 50L )
+                          )
+                    , list( c( 7L, 1L, 14L )
+                          , integer(0)
+                          )
+                    , list( c( 7L, 3L, 47L )
+                          , c( 40L, 4L, 50L )
+                          , c( 55L, 2L, 20L )
+                          , c( 38L, 6L, 12L )
+                          )
+                  )
+              )
+})
+
+test_that( "ticket_scanning_error_rate", {
+  samp1 <-
+"class: 1-3 or 5-7
+row: 6-11 or 33-44
+seat: 13-40 or 45-50
+
+your ticket:
+7,1,14
+
+nearby tickets:
+7,3,47
+40,4,50
+55,2,20
+38,6,12
+"
+  lns <- readLines( textConnection( samp1 ) )
+  info1 <- parse_16a( lns )
+  result <- ticket_scanning_errors( info1 )
+  expect_equal( result, c( Y = 0L, N001 = 0L, N002 = 4L, N003 = 55L, N004 = 12L ) )
+})
+
+test_that( "id_ticket_fields_16b", {
+  samp2 <-
+"class: 0-1 or 4-19
+row: 0-5 or 8-19
+seat: 0-13 or 16-19
+
+your ticket:
+11,12,13
+
+nearby tickets:
+3,9,18
+15,1,5
+5,14,9
+"
+  lns <- readLines( textConnection( samp2 ) )
+  info2 <- parse_16a( lns )
+  result <- get_nearby_ticket_slots( info2 )
+  expect_s3_class( result, "data.frame" )
+  expect_named( result, c( "N001", "N002", "N003" ) )
+  expect_equal( result$N001, c( 3L, 9L, 18L ) )
+})
+
+test_that( "id_ticket_fields_16b", {
+  samp2 <-
+"class: 0-1 or 4-19
+row: 0-5 or 8-19
+seat: 0-13 or 16-19
+
+your ticket:
+11,12,13
+
+nearby tickets:
+3,9,18
+15,1,5
+5,14,9
+"
+  lns <- readLines( textConnection( samp2 ) )
+  info2 <- parse_16a( lns )
+  result <- id_ticket_fields_16b( info2 )
+  expect_equal( result, c( class = 2L, row = 1L, seat = 3L ) )
+})
+
+
+# Day 19 ----
+
+test_that( "parse_19a", {
+  lns <- readLines( textConnection(
+'0: 4 1 5
+1: 2 3 | 3 2
+2: 4 4 | 5 5
+3: 4 5 | 5 4
+4: "a"
+5: "b"
+
+ababbb
+bababa
+abbbab
+aaabbb
+aaaabbb
+'))
+  result <- parse_19a( lns )
+})
