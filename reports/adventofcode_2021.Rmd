@@ -1,0 +1,37 @@
+---
+title: "Advent of Code 2021"
+name: "Jeff Newmiller"
+output: html_notebook
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(gmp)
+})
+rdir <- "R" # set Rmarkdown to evaluate in project directory
+dtadir <- "data"
+source( file.path( rdir, "adventofcode_2021.R" ) )
+```
+
+
+# Advent of Code 2021
+
+## [Day 1](https://adventofcode.com/2021/day/1)
+
+### Part 1
+
+```{r}
+dta1a <- scan("data/aoc2021_data_1a.csv")
+count_increases( dta1a )
+```
+
+### Part 2
+
+```{r}
+dta1b <- rowSums( embed( dta1a, 3 ) )
+count_increases(dta1b)
+```
+
