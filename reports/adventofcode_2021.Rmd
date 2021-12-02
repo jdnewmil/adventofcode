@@ -49,7 +49,16 @@ microbenchmark::microbenchmark( ans1b1 <- dta1a
                                                    ) > 0
                                              , na.rm = TRUE
                                              )
+                              , ans1b3 <- zoo::rollsum( dta1a, 3 )
+                                          |> diff()
+                                          |> ( \(x) sum( 0 < x ) )()
+                              , ans1b4 <- ( dta1a + lag( dta1a ) + lag( dta1a, n = 2 ) )
+                                          |> na.omit()
+                                          |> diff()
+                                          |> ( \(x) sum( 0 < x ) )()
                               )
 expect_equal( ans1b1, ans1b2 )
+expect_equal( ans1b1, ans1b3 )
+expect_equal( ans1b1, ans1b4 )
 ```
 
