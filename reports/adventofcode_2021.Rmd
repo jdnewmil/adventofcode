@@ -62,3 +62,17 @@ expect_equal( ans1b1, ans1b3 )
 expect_equal( ans1b1, ans1b4 )
 ```
 
+## [Day 2](https://adventofcode.com/2021/day/2)
+
+### Part 1
+
+```{r}
+lns <- readLines( "data/aoc2021_data_2a.csv")
+calc_pos_2a( lns ) |> unlist() |> prod()
+```
+
+## Part 2
+
+```{r}
+calc_pos_2b( lns ) |> unlist() |> prod()
+```
