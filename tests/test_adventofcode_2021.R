@@ -12,6 +12,8 @@ rdir <- "../R"
 #rdir <- "R"
 source( file.path( rdir, "adventofcode_2021.R" ) )
 
+# Day 1 ----
+
 test_that( "count_increases", {
   ex1 <- c( 199, 200, 208, 210, 200
           , 207, 240, 269, 260, 263 )

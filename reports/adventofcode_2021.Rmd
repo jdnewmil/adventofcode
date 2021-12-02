@@ -28,10 +28,28 @@ dta1a <- scan("data/aoc2021_data_1a.csv")
 count_increases( dta1a )
 ```
 
+
 ### Part 2
 
 ```{r}
 dta1b <- rowSums( embed( dta1a, 3 ) )
 count_increases(dta1b)
+```
+
+```{r}
+microbenchmark::microbenchmark( ans1b1 <- dta1a
+                                          |> embed( 3 )
+                                          |> rowSums()
+                                          |> diff()
+                                          |> ( \(x) sum( 0 < x ) )()
+                              , ans1b2 <- sum( diff( stats::filter( dta1a
+                                                                  , rep( 1, 3 )
+                                                                  , sides = 2
+                                                                  )
+                                                   ) > 0
+                                             , na.rm = TRUE
+                                             )
+                              )
+expect_equal( ans1b1, ans1b2 )
 ```
 
