@@ -76,3 +76,23 @@ calc_pos_2a( lns ) |> unlist() |> prod()
 ```{r}
 calc_pos_2b( lns ) |> unlist() |> prod()
 ```
+## [Day 3](https://adventofcode.com/2021/day/2)
+
+### Part 1
+
+```{r}
+lns <- scan( "data/aoc2021_data_3a.csv", what = "character", quiet = TRUE )
+lv <- parse_lgl_columns( lns )
+gam <- calc_gamma_rate( lv )
+eps <- calc_epsilon_rate( lv )
+pwr <- gam * eps
+pwr
+```
+```{r}
+m <- parse_lgl_columns_m( lns )
+CO2_scrubber_rating <- calc_CO2_scrubber_rating( m )
+oxy_gen_rating <- calc_oxy_gen_rating( m )
+life_support_rating <- oxy_gen_rating * CO2_scrubber_rating
+life_support_rating
+```
+
