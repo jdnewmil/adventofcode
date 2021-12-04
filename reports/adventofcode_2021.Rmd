@@ -96,3 +96,17 @@ life_support_rating <- oxy_gen_rating * CO2_scrubber_rating
 life_support_rating
 ```
 
+## [Day 4](https://adventofcode.com/2021/day/2)
+
+### Part 1
+
+```{r}
+lns <- readLines( "data/aoc2021_data_4a.txt" )
+inp <- read_day4a( lns )
+play_draws( inp$boards, inp$draws )
+```
+
+```{r}
+play_draws_last( inp$boards, inp$draws )
+```
+

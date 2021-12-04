@@ -124,3 +124,109 @@ calc_day3_rating <- function( m, f ) {
   stopifnot( 1L == sum( sel ) )
   cvt_lgl_vec_2_int( m[ sel, ] )
 }
+
+# Day 4 ----
+
+read_day4a <- function( lns ) {
+  draws <- scan( text = lns[1], sep = ",", quiet = TRUE )
+  lns <- lns[ -(1:2) ]
+  sects <- cumsum( "" == lns )
+  boards <- (  lns
+            |> split( sects )
+            |> lapply( \(lns) as.matrix( read.table( text = lns ) ) )
+            )
+  list( draws = draws, boards = boards )
+}
+
+mark_a_card <- function( card, board, draw ) {
+  pos <- which( board == draw, arr.ind = TRUE )
+  card[ pos ] <- TRUE
+  card
+}
+
+is_card_winning <- function( card ) {
+  i <- 0L
+  won <- FALSE
+  # cycle through rows
+  while( !won && i < 5L ) {
+    i <- i + 1L
+    won <- all( card[ i, ] )
+  }
+  if ( !won ) {
+    i <- 0L
+    # cycle through columns
+    while( !won && i < 5L ) {
+      i <- i + 1L
+      won <- all( card[ , i ] )
+    }
+  }
+  won
+}
+
+play_draws <- function( boards, draws ) {
+  cards <- lapply( boards
+                 , function( bd ) {
+                     matrix( FALSE, ncol = ncol( bd ), nrow = nrow( bd ) )
+                   }
+                 )
+  draw_idx <- 0L
+  won <- FALSE
+  while( !won ) {
+    draw_idx <- draw_idx + 1L
+    stopifnot( draw_idx <= length( draws ) )
+    draw <- draws[ draw_idx ]
+    # update cards
+    cards <- lapply( seq_along( boards )
+                   , function( i ) {
+                        mark_a_card( cards[[ i ]], boards[[ i ]], draw )
+                     }
+                   )
+    results <- sapply( cards, is_card_winning )
+    won <- any( results )
+  }
+  win_card_idx <- which( results )
+  win_card <- cards[[ win_card_idx ]]
+  score <- sum( boards[[ win_card_idx ]][ !c( win_card ) ] )
+  draw * score
+}
+
+play_draws_last <- function( boards, draws ) {
+  cards <- lapply( boards
+                   , function( bd ) {
+                     matrix( FALSE, ncol = ncol( bd ), nrow = nrow( bd ) )
+                   }
+  )
+  draw_idx <- 0L
+  last <- FALSE
+  while( !last ) {
+    draw_idx <- draw_idx + 1L
+    stopifnot( draw_idx <= length( draws ) )
+    draw <- draws[ draw_idx ]
+    # update cards
+    cards <- lapply( seq_along( boards )
+                     , function( i ) {
+                       mark_a_card( cards[[ i ]], boards[[ i ]], draw )
+                     }
+    )
+    results <- sapply( cards, is_card_winning )
+    last <- 1L == sum( !results )
+  }
+  last_card_idx <- which( !results )
+  won <- FALSE
+  while( !won ) {
+    draw_idx <- draw_idx + 1L
+    stopifnot( draw_idx <= length( draws ) )
+    draw <- draws[ draw_idx ]
+    # update cards
+    cards <- lapply( seq_along( boards )
+                     , function( i ) {
+                       mark_a_card( cards[[ i ]], boards[[ i ]], draw )
+                     }
+    )
+    results <- sapply( cards, is_card_winning )
+    won <- all( results )
+  }
+  last_card <- cards[[ last_card_idx ]]
+  score <- sum( boards[[ last_card_idx ]][ !c( last_card ) ] )
+  draw * score
+}
