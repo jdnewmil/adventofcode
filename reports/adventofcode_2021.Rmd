@@ -76,7 +76,7 @@ calc_pos_2a( lns ) |> unlist() |> prod()
 ```{r}
 calc_pos_2b( lns ) |> unlist() |> prod()
 ```
-## [Day 3](https://adventofcode.com/2021/day/2)
+## [Day 3](https://adventofcode.com/2021/day/3)
 
 ### Part 1
 
@@ -96,7 +96,7 @@ life_support_rating <- oxy_gen_rating * CO2_scrubber_rating
 life_support_rating
 ```
 
-## [Day 4](https://adventofcode.com/2021/day/2)
+## [Day 4](https://adventofcode.com/2021/day/4)
 
 ### Part 1
 
@@ -108,5 +108,30 @@ play_draws( inp$boards, inp$draws )
 
 ```{r}
 play_draws_last( inp$boards, inp$draws )
+```
+## [Day 5](https://adventofcode.com/2021/day/5)
+
+### Part 1
+
+```{r}
+lns <- readLines( "data/aoc2021_data_5a.txt" )
+dta <- parse_day5a( lns )
+map <- build_map_day5a( dta )
+count_danger_day5a(map)
+```
+
+### Part 2
+
+matrix is faster
+
+```{r}
+map <- build_map_day5b( dta )
+count_danger_day5a(map)
+```
+
+data frame (long coordinate handling) is slower
+
+```{r}
+count_danger_day5b_df(dta)
 ```
 

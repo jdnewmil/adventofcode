@@ -230,3 +230,101 @@ play_draws_last <- function( boards, draws ) {
   score <- sum( boards[[ last_card_idx ]][ !c( last_card ) ] )
   draw * score
 }
+
+# Day 5 ----
+
+parse_day5a <- function( lns ) {
+  (  lns
+  |> (\(x) gsub( "[^0-9]+", " ", x ) )()
+  |> paste( collapse = "\n" )
+  |> (\(x) read.table( text = x ))()
+  |> setNames( c( "x1", "y1", "x2", "y2" ) )
+  )
+}
+
+build_map_day5a <- function( dta ) {
+  rngx <- range( c( dta$x1, dta$x2 ) )
+  rngy <- range( c( dta$y1, dta$y2 ) )
+  map <- matrix( 0
+               , nrow = diff( rngy ) + 1L
+               , ncol = diff( rngx ) + 1L
+               )
+  rownames( map ) <- seq( rngy[ 1 ], rngy[ 2 ] )
+  colnames( map ) <- seq( rngx[ 1 ], rngx[ 2 ] )
+  for (i in seq_along( dta$x1 ) ) {
+    rw <- dta[ i, ]
+    if ( rw$y1 == rw$y2 ) {
+      ix <- seq( rw$x1 - rngx[ 1L ] + 1L, rw$x2 - rngx[ 1L ] + 1L ) 
+      map[ rw$y1 -rngy[ 1L ] + 1L, ix ] <- map[ rw$y1 - rngy[ 1L ] + 1L, ix ] + 1L
+    } else if ( rw$x1 == rw$x2 ) {
+      iy <- seq( rw$y1 - rngy[ 1L ] + 1L, rw$y2 - rngy[ 1L ] + 1L ) 
+      map[ iy, rw$x1 - rngx[ 1L ] + 1L ] <- map[ iy, rw$x1 - rngx[ 1L ] + 1L ] + 1L
+    }
+  }
+  map
+}
+
+build_map_day5b <- function( dta ) {
+  rngx <- range( c( dta$x1, dta$x2 ) )
+  rngy <- range( c( dta$y1, dta$y2 ) )
+  map <- matrix( 0
+                 , nrow = diff( rngy ) + 1L
+                 , ncol = diff( rngx ) + 1L
+  )
+  rownames( map ) <- seq( rngy[ 1 ], rngy[ 2 ] )
+  colnames( map ) <- seq( rngx[ 1 ], rngx[ 2 ] )
+  for (i in seq_along( dta$x1 ) ) {
+    rw <- dta[ i, ]
+    if ( rw$y1 == rw$y2 ) {
+      # horizontal lines
+      ix <- seq( rw$x1 - rngx[ 1L ] + 1L, rw$x2 - rngx[ 1L ] + 1L ) 
+      map[ rw$y1 -rngy[ 1L ] + 1L, ix ] <- map[ rw$y1 - rngy[ 1L ] + 1L, ix ] + 1L
+    } else if ( rw$x1 == rw$x2 ) {
+      # vertical lines
+      iy <- seq( rw$y1 - rngy[ 1L ] + 1L, rw$y2 - rngy[ 1L ] + 1L ) 
+      map[ iy, rw$x1 - rngx[ 1L ] + 1L ] <- map[ iy, rw$x1 - rngx[ 1L ] + 1L ] + 1L
+    } else if ( abs( rw$x1 - rw$x2 ) == abs( rw$y1 - rw$y2 ) ) {
+      # diagonal 45deg lines
+      ix <- seq( rw$x1 - rngx[ 1L ] + 1L, rw$x2 - rngx[ 1L ] + 1L ) 
+      iy <- seq( rw$y1 - rngy[ 1L ] + 1L, rw$y2 - rngy[ 1L ] + 1L ) 
+      ixy <- matrix( c( iy, ix ), ncol = 2L )
+      map[ ixy ] <- map[ ixy ] + 1L
+    }
+  }
+  map
+}
+
+count_danger_day5a <- function( map ) {
+  sum( 2 <= map )
+}
+
+build_ixy_df <- function( x1, y1, x2, y2 ) {
+  if ( y1 == y2 ) {
+    ix <- seq( x1, x2 ) 
+    iy <- rep( y1, length( ix ) )
+  } else if ( x1 == x2 ) {
+    iy <- seq( y1, y2 ) 
+    ix <- rep( x1, length( iy ) )
+  } else if ( abs( x1 - x2 ) == abs( y1 - y2 ) ) {
+    ix <- seq( x1, x2 )
+    iy <- seq( y1, y2 )
+  } else {
+    ix <- integer( 0 )
+    iy <- integer( 0 )
+  }
+  data.frame( iy = iy, ix = ix )
+}
+
+count_danger_day5b_df <- function( dta ) {
+  DF <- (   dta
+        %>% rowwise()
+        %>% mutate( ixy = list( build_ixy_df( x1, y1, x2, y2 ) ) )
+        %>% ungroup()
+        %>% select( ixy )
+        %>% unnest( cols = "ixy" )
+        %>% group_by( ix, iy )
+        %>% count()
+        %>% filter( 2 <= n )
+        )
+  nrow( DF )
+}

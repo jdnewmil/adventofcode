@@ -257,3 +257,157 @@ test_that( "play_draws_last", {
   expect_equal( ans, 1924L )
 })
 
+
+# Day 5 ----
+
+test_that( "parse_day5a", {
+  s <- 
+"0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2
+"
+  lns <- strsplit( s, "\n", fixed = TRUE )[[1]]
+  ans <- parse_day5a( lns )
+  expect_s3_class( ans, "data.frame" )
+  expect_length( ans, 4 )
+  expect_named( ans, c( "x1", "y1", "x2", "y2" ) )
+})
+
+test_that( "build_map_day5a", {
+  s <- 
+"0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2
+"
+  lns <- strsplit( s, "\n", fixed = TRUE )[[1]]
+  dta <- parse_day5a( lns )
+  ans <- build_map_day5a( dta )
+  expect_equal( ans
+              , structure(c( 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 0, 0
+                           , 0, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0
+                           , 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0
+                           , 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0
+                           , 0, 0, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+                           , 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0
+                           )
+                         , .Dim = c(10L, 10L)
+                         , .Dimnames = list( c( "0", "1", "2", "3", "4", "5"
+                                              , "6", "7", "8", "9")
+                                           , c( "0", "1", "2", "3", "4", "5"
+                                              , "6", "7", "8", "9" )
+                                           )
+                         )
+              )
+})
+
+test_that( "count_danger_day5a", {
+  s <- 
+"0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2
+"
+  lns <- strsplit( s, "\n", fixed = TRUE )[[1]]
+  dta <- parse_day5a( lns )
+  map <- build_map_day5a( dta )
+  ans <- count_danger_day5a( map )
+  expect_equal( ans, 5 )
+})
+
+test_that( "count_danger_day5b", {
+  s <- 
+"0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2
+"
+  lns <- strsplit( s, "\n", fixed = TRUE )[[1]]
+  dta <- parse_day5a( lns )
+  map <- build_map_day5b( dta )
+  ans <- count_danger_day5a( map )
+  expect_equal( ans, 12L )
+})
+
+test_that( "build_ixy_df", {
+  ans1 <- build_ixy_df( 0, 0, 8, 2 )
+  expect_equal( ans1
+              , structure( list( iy = integer(0)
+                               , ix = integer(0)
+                               )
+                         , class = "data.frame"
+                         , row.names = integer(0)
+                         )
+              )
+  ans2 <- build_ixy_df( 0, 0, 8, 8 )
+  expect_equal( ans2
+              , structure( list( iy = 0:8
+                               , ix = 0:8
+                               )
+                         , class = "data.frame"
+                         , row.names = c(NA, -9L)
+                         )
+              )
+  ans3 <- build_ixy_df( 0, 9, 5, 9 )
+  expect_equal( ans3
+              , structure( list( iy = c(9, 9, 9, 9, 9, 9)
+                               , ix = 0:5
+                               )
+                         , class = "data.frame"
+                         , row.names = c(NA, -6L)
+                         )
+              )
+  ans4 <- build_ixy_df( 7, 0, 7, 4 )
+  expect_equal( ans4
+              , structure( list( iy = 0:4
+                               , ix = c(7, 7, 7, 7, 7)
+                               )
+                         , class = "data.frame"
+                         , row.names = c(NA, -5L)
+                         )
+              )
+})
+
+test_that( "count_danger_day5b", {
+  s <- 
+"0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2
+"
+  lns <- strsplit( s, "\n", fixed = TRUE )[[1]]
+  dta <- parse_day5a( lns )
+  ans <- count_danger_day5b_df( dta )
+  expect_equal( ans, 12L )
+})
