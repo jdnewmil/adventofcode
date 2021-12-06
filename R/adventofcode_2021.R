@@ -328,3 +328,38 @@ count_danger_day5b_df <- function( dta ) {
         )
   nrow( DF )
 }
+
+# Day 6 ----
+
+parse_lanternfish <- function( s ) {
+  dta <- (  s
+         |> strsplit( "," )
+         |> unlist()
+         |> table()
+         |> as.data.frame()
+         |> within({ Var1 = as.character( Var1 ) })
+         |> merge( data.frame( Var1 = as.character( 0:8 ) )
+                 , all.y = TRUE
+                 , by = "Var1"
+                 )
+         |> within({ Freq[ is.na( Freq ) ] <- 0
+                  })
+         |> setNames( c( "State", "Count" ) )
+         )
+  dta[ order( dta$State ), ]
+}
+
+sim_day_lanternfish <- function( state ) {
+  birthing <- state$Count[ 1 ]
+  state$Count <- c( state$Count[ -1 ], birthing )
+  state$Count[ 7 ] <- state$Count[ 7 ] + birthing
+  state
+}
+
+sim_days_lanternfish <- function( state, days ) {
+  for ( day in seq.int( days ) ) {
+    state <- sim_day_lanternfish( state )
+  }
+  sum( state$Count )
+}
+

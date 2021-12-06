@@ -411,3 +411,32 @@ test_that( "count_danger_day5b", {
   ans <- count_danger_day5b_df( dta )
   expect_equal( ans, 12L )
 })
+
+# Day 6 ----
+
+test_that( "parse_lanternfish", {
+  s <- "3,4,3,1,2"
+  ans <- parse_lanternfish( s )
+  expect_s3_class( ans, "data.frame" )
+  expect_named( ans, c( "State", "Count" ) )
+  expect_equal( ans$State, as.character( 0:8 ) )
+  expect_equal( ans$Count, c( 0, 1, 1, 2, 1, 0, 0, 0, 0 ) )
+})
+
+test_that( "sim_day_lanternfish", {
+  s <- "3,4,3,1,2"
+  day0 <- parse_lanternfish( s )
+  day1 <- sim_day_lanternfish( day0 )
+  expect_equal( day1$Count, parse_lanternfish( "2,3,2,0,1" )$Count )
+  day2 <- sim_day_lanternfish( day1 )
+  expect_equal( day2$Count, parse_lanternfish( "1,2,1,6,0,8" )$Count )
+  day3 <- sim_day_lanternfish( day2 )
+  expect_equal( day3$Count, parse_lanternfish( "0,1,0,5,6,7,8" )$Count )
+})
+
+test_that( "sim_days_lanternfish", {
+  s <- "3,4,3,1,2"
+  day0 <- parse_lanternfish( s )
+  ans <- sim_days_lanternfish( day0, 80 )
+  expect_equal( ans, 5934 )
+})

@@ -134,4 +134,19 @@ data frame (long coordinate handling) is slower
 ```{r}
 count_danger_day5b_df(dta)
 ```
+## [Day 6](https://adventofcode.com/2021/day/6)
+
+### Part 1
+
+```{r}
+lns <- readLines( "data/aoc2021_data_6a.txt" )
+day0 <- parse_lanternfish( lns )
+sim_days_lanternfish( day0, 80 )
+```
+
+### Part 2
+
+```{r}
+sprintf( "%20.0f", sim_days_lanternfish( day0, 256 ) )
+```
 
