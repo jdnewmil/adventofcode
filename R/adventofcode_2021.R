@@ -363,3 +363,51 @@ sim_days_lanternfish <- function( state, days ) {
   sum( state$Count )
 }
 
+# Day 7 ----
+
+find_crab_fuel <- function( x, v, version = 1 ) {
+  if ( 1 == version ) {
+    cost <- \(x) x
+  } else {
+    cost <- (\(n) n*(n+1)/2 )
+  }
+  f1 <- \(x1) ( ( v - x1 ) |> abs() |> cost() |> round() |> sum() )
+  # handle vector-valued x to perform fuel calcs repeatedly
+  sapply( x, f1 )
+}
+
+find_min_crab_fuel <- function( v, version = 1 ) {
+  # initial guess function
+  if ( 1 == version ) {
+    center <- median
+  } else {
+    center <- mean
+  }
+  guess1 <- (  v
+            |> center()
+            |> round()
+            )
+  # initial guess at minimum fuel
+  ans1 <- find_crab_fuel( guess1, v, version = version )
+  # rounding errors mean true minimum could be off by a few
+  delta <- 1
+  # guess 1 higher
+  ans2 <- find_crab_fuel( guess2 <- guess1 + delta, v, version = version )
+  if ( ans1 < ans2 ) {
+    # did not decrease so start guessing lower
+    delta <- -1
+  } else {
+    # progress further in this direction
+    ans1 <- ans2
+    guess1 <- guess2
+  }
+  # new second estimate
+  ans2 <- find_crab_fuel( guess2 <- guess1 + delta, v, version = version )
+  # keep going until first increase
+  while ( ans2 < ans1 ) {
+    guess1 <- guess2
+    ans1 <- ans2
+    ans2 <- find_crab_fuel( guess2 <- guess1 + delta, v, version = version )
+  }
+  ans1
+}

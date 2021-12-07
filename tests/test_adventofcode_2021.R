@@ -440,3 +440,22 @@ test_that( "sim_days_lanternfish", {
   ans <- sim_days_lanternfish( day0, 80 )
   expect_equal( ans, 5934 )
 })
+
+# Day 7 ----
+
+test_that( "find_min_crab_fuel", {
+  s <- "16,1,2,0,4,2,7,1,2,14"
+  v <- scan( text = s, sep = ",", quiet = TRUE )
+  ans <- find_min_crab_fuel( v )
+  expect_equal( ans, 37 )
+})
+
+test_that( "find_min_crab_fuel v2", {
+  s <- "16,1,2,0,4,2,7,1,2,14"
+  v <- scan( text = s, sep = ",", quiet = TRUE )
+  ans <- find_min_crab_fuel( v, version = 2 )
+  expect_equal( ans, 168 )
+  v2 <- c( v, 5 )
+  ans2 <- find_min_crab_fuel( v2, version = 2 )
+  expect_equal( ans2, 168 )
+})

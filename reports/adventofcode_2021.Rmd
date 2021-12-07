@@ -150,3 +150,20 @@ sim_days_lanternfish( day0, 80 )
 sprintf( "%20.0f", sim_days_lanternfish( day0, 256 ) )
 ```
 
+## [Day 7](https://adventofcode.com/2021/day/7)
+
+### Part 1
+
+```{r}
+dta7a <- scan( "data/aoc2021_data_7a.txt", sep = ",", quiet = TRUE)
+find_min_crab_fuel( dta7a )
+```
+
+
+```{r}
+find_min_crab_fuel( dta7a, version = 2 )
+```
+```{r}
+microbenchmark::microbenchmark( ans7b1 <- find_min_crab_fuel( dta7a, version = 2 ) )
+```
+
