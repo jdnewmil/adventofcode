@@ -516,7 +516,41 @@ test_that( "calc_input_scores_day8b", {
 
 test_that( "calc_output_scores", {
   lns <- "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"
+  # 
   inpdta <- parse_day8a( lns )
+  ans0 <- calc_input_scores_day8b( inpdta )
+  # "A" segment is "wrong" so it is not the same as the "a" segment
+  # this segment is used in 8 distinct digits
+  # "B" segment is used in 9 distinct digits
+  #      A  B C D E F G sum
+  # 0    ?  ? ? ? ? ? ?   6
+  # 1    ?  ? ? ? ? ? ?   2
+  # 2    ?  ? ? ? ? ? ?   5
+  # 3    ?  ? ? ? ? ? ?   5
+  # 4    ?  ? ? ? ? ? ?   4
+  # 5    ?  ? ? ? ? ? ?   5
+  # 6    ?  ? ? ? ? ? ?   6
+  # 7    ?  ? ? ? ? ? ?   3
+  # 8    ?  ? ? ? ? ? ?   7
+  # 9    ?  ? ? ? ? ? ?   6
+  # each column sum has to add up to one of
+  #      a  b  c  d  e  f  g
+  # sum 61 42 57 45 28 63 50 
+  expect_equal( ans0[[1]]
+              , structure( c( A = 8L, B = 9L, C = 7L, D = 8L
+                            , E = 6L, F = 7L, G = 4L
+                            )
+                         , .Dim = 7L
+                         , .Dimnames = structure( list( c( "A", "B", "C"
+                                                         , "D", "E", "F"
+                                                         , "G"
+                                                         )
+                                                      )
+                                                , .Names = ""
+                                                )
+                         , class = "table"
+                         )
+              )
   ans <- calc_output_scores( inpdta )
   expect_equal( ans, list( c( 5, 3, 5, 3 ) ) )
 })
