@@ -411,3 +411,161 @@ find_min_crab_fuel <- function( v, version = 1 ) {
   }
   ans1
 }
+
+# Day 8 ----
+
+parse_segments <- function( s ) {
+  (  s
+  |> strsplit( "" )
+  |> lapply( (\(x) as.integer( factor( x, levels = letters[ 1:8 ] ) ) ) )
+  )
+}
+
+parse_day8a <- function( lns ) {
+  lns2 <- (  lns
+          |> strsplit( split = "|", fixed = TRUE )
+          )
+  inp <- (  lns2
+         |> sapply( \(x) `[`( x, 1 ) )
+         |> lapply( \(x) scan( text = x, what = character(), quiet = TRUE ) )
+         )
+  outp <- (  lns2
+          |> sapply( \(x) `[`( x, 2 ) )
+          |> lapply( \(x) scan( text = x, what = character(), quiet = TRUE ) )
+          )
+  list( input = inp, output = outp )
+}
+
+count_unique_day8a <- function( lst_s ) {
+  (  lst_s
+  |> unlist()
+  |> nchar()
+  |> tabulate( nbins = 8L )
+  |> (\(x) x[ c( 2, 3, 4, 7 ) ] )()
+  |> sum()
+  )
+}
+
+# M = 7 * 7
+# x = 7 * N
+# M * x = X
+# X = 7 * N
+# d = 10 * 7 known
+
+#  a
+# b c
+#  d
+# e f
+#  g
+
+d <- ( scan( text = 
+#a b c d e f g
+"1 1 1 0 1 1 1 # 0
+ 0 0 1 0 0 1 0 # 1
+ 1 0 1 1 1 0 1 # 2
+ 1 0 1 1 0 1 1 # 3
+ 0 1 1 1 0 1 0 # 4
+ 1 1 0 1 0 1 1 # 5
+ 1 1 0 1 1 1 1 # 6
+ 1 0 1 0 0 1 0 # 7
+ 1 1 1 1 1 1 1 # 8
+ 1 1 1 1 0 1 1 # 9
+"
+           , quiet = TRUE
+           , comment.char = "#"
+           )
+     |> matrix( byrow = TRUE, ncol = 7L )
+     )
+dlgl <- matrix( as.logical(d), ncol = ncol( d ) )
+
+# diversion for logical vector approach... dead end
+form_digit_string <- function(x) {
+  forms <- (
+" aaaa    ....    aaaa    aaaa    ....   
+b    c  .    c  .    c  .    c  b    c  
+b    c  .    c  .    c  .    c  b    c  
+ ....    ....    dddd    dddd    dddd   
+e    f  .    f  e    .  .    f  .    f  
+e    f  .    f  e    .  .    f  .    f  
+ gggg    ....    gggg    gggg    ....   
+ aaaa    aaaa    aaaa    aaaa    aaaa   
+b    .  b    .  .    c  b    c  b    c  
+b    .  b    .  .    c  b    c  b    c  
+ dddd    dddd    ....    dddd    dddd   
+.    f  e    f  .    f  e    f  .    f  
+.    f  e    f  .    f  e    f  .    f  
+ gggg    gggg    ....    gggg    gggg   
+"
+           |> (\(.) strsplit( ., "\n" )[[1]])()
+           |> strsplit( "" )
+           |> (\(.) do.call( rbind, . ) )()
+           )
+  forms <- cbind( forms[ 1:7, ], forms[ 8:14, ] )
+  forms <- array( c( forms ), dim = c( 7, 8, 10 ) )
+  out <- do.call( cbind, lapply( x, \(.) forms[ , , . + 1 ] )) 
+  (  out
+  |> apply( 1, \(.) paste0( ., collapse = "" ) )
+  |> (\(.) paste( ., collapse = "\n" ) )()
+  )
+}
+
+# dead end... diversion
+lookup_digit <- function( segs ) {
+  segs <- as.logical( segs )
+  i <- 1L
+  while( i < 10L && any( xor( segs, dlgl[ i, ] ) ) ) {
+    i <- i + 1L
+  }
+  if ( 10L <= i ) NULL
+  else i - 1L
+}
+
+#lookup_digit( segs = c( 0, 0, 1, 0, 0, 1, 0 ) )
+#lookup_digit( segs = c( 0, 1, 1, 1, 0, 1, 0 ) )
+
+# number of segment in digits 0 to 9
+segs_len <- c( 6, 2, 5, 4, 5, 6, 7, 6 )
+# segment score is number of digits using that segment ... 7 distinct scores
+segs_scores <- apply( t(d) * apply(d, 2, sum), 2, sum )
+
+# among 10 unique digits, can sum up total number of segments needed
+# either of two ways:
+#  by digit: each digit has some number of segments, add those for each digit
+#    (use this for output digits)
+#  by segment: each segment corresponds to some number of digits, add those for each segment
+#    (use this for input segments)
+# both approaches involve the same total number of segments
+
+# inputs constitute each of the 10 digits in some order
+# input scores are counts of segment occurrences in input
+calc_input_scores_day8b <- function( inpdta ) {
+  inp <- inpdta$input
+  (  inp
+  |> lapply( (\(.) paste0( ., collapse = "" ) ) )
+  |> unlist()
+  |> strsplit( "", fixed = TRUE )
+  |> lapply( toupper ) # keyed by "wrong" segment labeling
+  |> lapply( table )
+  )
+}
+
+# output scores use input segment scores to compute corresponding
+# output segment scores
+# for a given output digit, only one of the input scores will match
+score_output <- function( outv, intbl ) {
+  (  outv
+  |> toupper() # keyed by "wrong" segment labeling
+  |> strsplit( "" )
+  |> sapply( \(ltrs) sum( intbl[ ltrs ] ) )
+  |> match( segs_scores ) # get table indexes
+  |> (\(.) . - 1 )() # convert to digit
+  )
+}
+#score_output( inpdta$output[[1]], ans[[ 1 ]] )
+
+calc_output_scores <- function( inpdta ) {
+  inp_scores <- calc_input_scores_day8b( inpdta )
+  lapply( seq_along( inp_scores )
+        , \(i) score_output( inpdta$output[[i]], inp_scores[[i]] )
+        )
+}

@@ -459,3 +459,64 @@ test_that( "find_min_crab_fuel v2", {
   ans2 <- find_min_crab_fuel( v2, version = 2 )
   expect_equal( ans2, 168 )
 })
+
+# Day 8 ----
+
+test_dta_day8a <-
+"be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
+edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
+fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg
+fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb
+aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea
+fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb
+dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe
+bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef
+egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
+gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce"
+
+test_that( "parse_day8a", {
+  lns <- strsplit( test_dta_day8a, "\n" )[[1]]
+  ans <- parse_day8a( lns )
+  expect_named( ans, c( "input", "output" ) )
+})
+
+test_that( "parse_segments", {
+  ans <- parse_segments( c( "ace", "bcdg" ) )
+  expect_equal( ans, list( c( 1, 3, 5 ), c( 2, 3, 4, 7 ) ) )
+})
+
+test_that( "count_unique_day8a", {
+  lns <- strsplit( test_dta_day8a, "\n" )[[1]]
+  inpdta <- parse_day8a( lns )
+  ans <- count_unique_day8a( inpdta$output )
+  expect_equal( ans, 26 )
+})
+
+test_that( "calc_input_scores_day8b", {
+  lns <- strsplit( test_dta_day8a, "\n" )[[1]]
+  inpdta <- parse_day8a( lns )
+  ans <- calc_input_scores_day8b( inpdta )
+  expect_equal( length( ans ), 10L )
+  expect_equal( ans[[1]]
+              , structure( c( A = 4L, B = 8L, C = 7L, D = 8L
+                            , E = 9L, F = 7L, G = 6L
+                            )
+                         , .Dim = 7L
+                         , .Dimnames = structure( list( c( "A", "B", "C"
+                                                         , "D", "E", "F"
+                                                         , "G"
+                                                         )
+                                                      )
+                                                , .Names = ""
+                                                )
+                         , class = "table"
+                         )
+              )
+})
+
+test_that( "calc_output_scores", {
+  lns <- "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"
+  inpdta <- parse_day8a( lns )
+  ans <- calc_output_scores( inpdta )
+  expect_equal( ans, list( c( 5, 3, 5, 3 ) ) )
+})

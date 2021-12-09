@@ -167,3 +167,19 @@ find_min_crab_fuel( dta7a, version = 2 )
 microbenchmark::microbenchmark( ans7b1 <- find_min_crab_fuel( dta7a, version = 2 ) )
 ```
 
+## [Day 8](https://adventofcode.com/2021/day/8)
+
+### Part 1
+
+```{r}
+lns <- readLines( "data/aoc2021_data_8a.txt" )
+inpdta <- parse_day8a( lns )
+count_unique_day8a( inpdta$output )
+```
+
+### Part 2
+
+```{r}
+calc_output_scores( inpdta ) |> lapply( (\(o) sum( o * 10^(3:0) ) ) ) |> unlist() |> sum()
+```
+
